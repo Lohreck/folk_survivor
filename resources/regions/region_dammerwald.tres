@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RegionData" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="RegionData" load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://resources/regions/region_data.gd" id="1"]
 [ext_resource type="Script" path="res://resources/regions/enemy_spawn_entry.gd" id="2"]
@@ -27,6 +27,13 @@ weight = 10.0
 from_minute = 3.0
 is_elite = false
 
+[sub_resource type="Resource" id="Resource_ait_elite"]
+script = ExtResource("2")
+enemy = ExtResource("5")
+weight = 0.0
+from_minute = 5.0
+is_elite = true
+
 [resource]
 script = ExtResource("1")
 id = &"dammerwald"
@@ -34,6 +41,6 @@ display_name = "Der Dammerwald"
 hp_multiplier = 1.0
 damage_multiplier = 1.0
 spawn_basis = 1.5
-enemy_spawn_table = [SubResource("Resource_kiki"), SubResource("Resource_domo"), SubResource("Resource_ait")]
+enemy_spawn_table = [SubResource("Resource_kiki"), SubResource("Resource_domo"), SubResource("Resource_ait"), SubResource("Resource_ait_elite")]
 mini_boss_id = &""
 main_boss_id = &"leshy"

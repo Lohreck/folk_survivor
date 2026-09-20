@@ -9,6 +9,7 @@ extends Node2D
 
 const ENEMY_SCENE := preload("res://scenes/enemies/test_enemy.tscn")
 const RANGED_ENEMY_SCENE := preload("res://scenes/enemies/ranged_enemy.tscn")
+const FLYER_ENEMY_SCENE := preload("res://scenes/enemies/flyer_enemy.tscn")
 const ENEMY_PROJECTILE_SCENE := preload("res://scenes/enemies/enemy_projectile.tscn")
 const GEM_SCENE := preload("res://scenes/items/xp_gem.tscn")
 const REGION_SCENE := preload("res://resources/regions/region_dammerwald.tres")
@@ -25,6 +26,7 @@ const ARENA_SIZE := Vector2(4096, 4096)
 
 const POOL_ENEMIES: StringName = &"enemies"
 const POOL_RANGED: StringName = &"ranged_enemies"
+const POOL_FLYERS: StringName = &"flyer_enemies"
 const POOL_GEMS: StringName = &"xp_gems"
 const POOL_PROJECTILES: StringName = &"enemy_projectiles"
 
@@ -90,6 +92,8 @@ func _ready() -> void:
 	EnemyPoolManager.attach_pool_to(POOL_GEMS, gem_container)
 	EnemyPoolManager.register_pool(POOL_RANGED, RANGED_ENEMY_SCENE, 30)
 	EnemyPoolManager.attach_pool_to(POOL_RANGED, enemy_container)
+	EnemyPoolManager.register_pool(POOL_FLYERS, FLYER_ENEMY_SCENE, 30)
+	EnemyPoolManager.attach_pool_to(POOL_FLYERS, enemy_container)
 	EnemyPoolManager.register_pool(POOL_PROJECTILES, ENEMY_PROJECTILE_SCENE, 80)
 	EnemyPoolManager.attach_pool_to(POOL_PROJECTILES, _projectile_container)
 
@@ -201,7 +205,8 @@ func _spawn_enemy(data: EnemyData, elite: bool) -> void:
 	# Fernkämpfer (Role.RANGED) kommen in den eigenen RangedEnemy-Pool
 	# und hängen im EnemyContainer, damit Separation/Grid weiterlaufen.
 	var is_ranged := data.role == EnemyData.Role.RANGED
-	var pool_id: StringName = POOL_RANGED if is_ranged else POOL_ENEMIES
+	var is_flyer := data.role == EnemyData.Role.FLYER
+	var pool_id: StringName = POOL_FLYERS if is_flyer else (POOL_RANGED if is_ranged else POOL_ENEMIES)
 	if EnemyPoolManager.count_active(pool_id) >= EnemyPoolManager.HARD_ENEMY_CAP:
 		return
 	var enemy: Area2D = EnemyPoolManager.get_instance(pool_id)
@@ -213,7 +218,7 @@ func _spawn_enemy(data: EnemyData, elite: bool) -> void:
 	enemy.global_position = _random_offscreen_position()
 	enemy.target = player
 	enemy.on_died = _on_enemy_died
-	if is_ranged:
+	if is_ranged or is_flyer:
 		# Fernkampf-Callable injizieren: Projektil aus dem Pool + skalierte
 		# Schadenswerte (der Gegner übergibt nur Position/Richtung/Tempo).
 		enemy.fire_projectile = _fire_enemy_projectile
@@ -229,7 +234,11 @@ func _fire_enemy_projectile(pos: Vector2, dir: Vector2, speed: float, damage: fl
 
 ## Zählt aktive Gegner (für den SpawnDirector-Deckel).
 func _count_active_enemies() -> int:
-	return EnemyPoolManager.count_active(POOL_ENEMIES)
+	# Deckel zählt ALLE aktiven Gegner (Balancing §3.2: Gesamtzahl,
+	# nicht nur Bodentruppen).
+	return (EnemyPoolManager.count_active(POOL_ENEMIES)
+		+ EnemyPoolManager.count_active(POOL_RANGED)
+		+ EnemyPoolManager.count_active(POOL_FLYERS))
 
 
 ## Elite-Typ: aus dem Regions-Mix der Flieger/Eliten-Kandidat (Balancing §3.3,
