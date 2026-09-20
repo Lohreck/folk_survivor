@@ -1,6 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://b0xpgem000001"]
 
 [ext_resource type="Script" path="res://scenes/items/xp_gem.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/xp_gem.png" id="2"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1"]
 radius = 8.0
@@ -28,9 +29,8 @@ modulate = Color(0.55, 0.95, 1, 1)
 scale = Vector2(0.5, 0.5)
 texture = SubResource("GradientTexture2D_glow")
 
-[node name="Gem" type="Polygon2D" parent="."]
-color = Color(0.62, 0.98, 1, 1)
-polygon = PackedVector2Array(0, -8, 6, 0, 0, 8, -6, 0)
+[node name="Gem" type="Sprite2D" parent="."]
+texture = ExtResource("2")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_1")

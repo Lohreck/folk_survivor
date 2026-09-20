@@ -13,7 +13,14 @@ class_name TerrainHazard
 ## Schaden als Tick alle 0.5 s – der Spieler hat ohnehin 0.5 s
 ## Treffer-Invulnerabilität, schnellere Ticks würden nichts additionalen.
 
-const TICK_INTERVAL := 0.5
+## Schadenst-Tick alle 1 s. WICHTIG: bewusst LANGER als der 0.5-s-Treffer-
+## Cooldown des Spielers – ein 0.5-s-Tick kollidiert phasengenau mit der
+## Invulnerabilität und würde systematisch geblockt (Playtest-Bug).
+const TICK_INTERVAL := 1.0
+
+## Baum-Sprite für die Formation (Platzhalter-Pixelart,
+## tools/generate_placeholder_art.gd).
+const TREE_TEXTURE := preload("res://assets/sprites/tree.png")
 
 ## Schaden pro Tick (wird vom Leshy gesetzt: Terrain-DPS × Tick-Intervall).
 var _damage_per_tick := 8.0
@@ -68,7 +75,7 @@ func _activate() -> void:
 	_tick_timer = TICK_INTERVAL
 
 
-## Baut 5 Platzhalter-Bäume im Kreis (trunk + Krone als Polygon2D).
+## Baut 5 Platzhalter-Bäume im Kreis (tree.png-Sprites, leicht rotiert).
 func _build_trees() -> void:
 	var count := 5
 	for i in count:
@@ -78,19 +85,13 @@ func _build_trees() -> void:
 
 
 func _add_tree(pos: Vector2) -> void:
-	var trunk := Polygon2D.new()
-	trunk.color = Color(0.32, 0.22, 0.12)
-	trunk.polygon = PackedVector2Array([
-		pos + Vector2(-3, 4), pos + Vector2(3, 4),
-		pos + Vector2(2, -10), pos + Vector2(-2, -10),
-	])
-	_trees.add_child(trunk)
-	var canopy := Polygon2D.new()
-	canopy.color = Color(0.18, 0.38, 0.16)
-	canopy.polygon = PackedVector2Array([
-		pos + Vector2(0, -44), pos + Vector2(18, -12), pos + Vector2(-18, -12),
-	])
-	_trees.add_child(canopy)
+	var tree := Sprite2D.new()
+	tree.texture = TREE_TEXTURE
+	tree.position = pos
+	# Verschiedene Größen/Drehungen für organische Formation.
+	tree.scale = Vector2.ONE * randf_range(0.8, 1.2)
+	tree.rotation = randf() * TAU
+	_trees.add_child(tree)
 
 
 ## Sichtbarer Warnring (0.5 s) + Baumsilhouette als Kinder im .tscn.

@@ -129,8 +129,9 @@ func _ready() -> void:
 	death_screen.hide()
 
 	# Atmosphäre initialisieren (Diablo-1-Anmutung: Nacht + warmer Lichtkegel).
-	# Heller als im ersten Pass, damit Gegner-Silhouetten lesbar bleiben.
-	atmosphere.color = Color(0.42, 0.44, 0.52, 1)
+	# Nach Playtest-Feedback (M2c) heller: Platzhalter-Sprites müssen lesbar
+	# sein – final wird das via Contrast/Palette gelöst, nicht per Nacht.
+	atmosphere.color = Color(0.6, 0.62, 0.68, 1)
 	_fit_fullscreen_sprite(vignette_shade)
 	_fit_fullscreen_sprite(fog)
 	_update_hud()
@@ -148,7 +149,7 @@ func _process(delta: float) -> void:
 	# Atmosphäre: Lagerfeuer-Flackern auf dem Spieler-Licht,
 	# Fireflies folgen der Kamera (Emissionszone um den Spieler zentrieren).
 	# Nebel driftet langsam über die Karte (Fake-Wolken, reine Sprite-Bewegung).
-	player_light.energy = 1.55 + sin(run_time * 7.3) * 0.08 + sin(run_time * 13.7) * 0.05
+	player_light.energy = 1.9 + sin(run_time * 7.3) * 0.08 + sin(run_time * 13.7) * 0.05
 	fireflies.position = player.global_position
 	fog.position = player.global_position + Vector2(sin(run_time * 0.11) * 260.0, cos(run_time * 0.07) * 180.0)
 

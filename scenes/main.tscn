@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/hud/virtual_joystick.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/ui/level_up_screen/level_up_screen.tscn" id="3"]
 [ext_resource type="Script" path="res://scenes/ui/death_screen.gd" id="6"]
+[ext_resource type="Texture2D" path="res://assets/sprites/player.png" id="7"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_player"]
 radius = 14.0
@@ -88,14 +89,13 @@ shape = SubResource("CircleShape2D_player_root")
 
 [node name="PlayerLight" type="PointLight2D" parent="World/Player"]
 color = Color(1, 0.86, 0.62, 1)
-energy = 1.6
-texture_scale = 3.2
+energy = 1.9
+texture_scale = 4.2
 shadow_enabled = true
 shadow_filter = 1
 
-[node name="Body" type="Polygon2D" parent="World/Player"]
-color = Color(0.4, 0.75, 0.45, 1)
-polygon = PackedVector2Array(14, 0, -10, 10, -6, 0, -10, -10)
+[node name="Body" type="Sprite2D" parent="World/Player"]
+texture = ExtResource("7")
 
 [node name="HpBar" type="Node2D" parent="World/Player"]
 position = Vector2(-20, -26)

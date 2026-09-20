@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://b0testenemy01"]
+[gd_scene load_steps=3 format=3 uid="uid://b0testenemy01"]
 
 [ext_resource type="Script" path="res://scenes/enemies/test_enemy.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/kikimora.png" id="2"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1"]
 radius = 10.0
@@ -28,13 +29,8 @@ modulate = Color(1, 0.3, 0.24, 1)
 scale = Vector2(0.55, 0.55)
 texture = SubResource("GradientTexture2D_rim")
 
-[node name="Body" type="Polygon2D" parent="."]
-color = Color(0.78, 0.32, 0.3, 1)
-polygon = PackedVector2Array(10, 0, -7, 7, -4, 0, -7, -7)
-
-[node name="Core" type="Polygon2D" parent="."]
-color = Color(1, 0.72, 0.42, 1)
-polygon = PackedVector2Array(4, 0, -2, 3, -2, -3)
+[node name="Body" type="Sprite2D" parent="."]
+texture = ExtResource("2")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_1")

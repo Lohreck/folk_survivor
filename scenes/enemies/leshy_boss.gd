@@ -17,8 +17,8 @@ const HAZARD_SCENE := preload("res://scenes/enemies/terrain_hazard.tscn")
 ## Terrain-Änderungs-Zyklus (s). Erste Änderung kürzer, damit der Spieler die
 ## Mechanik früh lernt (Tutorial-Region).
 const TERRAIN_INTERVAL := 7.0
-## Schaden pro Terrain-Tick (8 alle 0.5 s = 16 DPS im Hazard).
-const TERRAIN_TICK_DAMAGE := 8.0
+## Schaden pro Terrain-Tick (16 pro 1-s-Tick = 16 DPS im Hazard).
+const TERRAIN_TICK_DAMAGE := 16.0
 ## Warnzeit (Barrierefreiheit §3.2: 0.5 s Vorwarnung).
 const TERRAIN_WARN := 0.5
 

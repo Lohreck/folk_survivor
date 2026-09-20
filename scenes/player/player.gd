@@ -33,7 +33,7 @@ var xp_to_next := 6.0
 
 var _contact_timer := 0.0
 
-@onready var _body: Polygon2D = $Body
+@onready var _body: Sprite2D = $Body
 @onready var _hp_bar_bg: ColorRect = $HpBar/Background
 @onready var _hp_bar_fill: ColorRect = $HpBar/Fill
 @onready var _magnet_shape: CollisionShape2D = $MagnetArea/CollisionShape2D

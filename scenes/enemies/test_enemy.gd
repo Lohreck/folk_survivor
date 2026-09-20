@@ -57,7 +57,7 @@ var _bleed_dps := 0.0
 var _bleed_time := 0.0
 var _root_time := 0.0
 
-@onready var _visual: Polygon2D = $Body
+@onready var _visual: Sprite2D = $Body
 
 
 func _ready() -> void:

@@ -28,7 +28,7 @@ const _FLY_RETREAT_BELOW := 60.0
 ## Schwebephase (rad). Versetzt pro Instanz – nicht alle wippen im Gleichtakt.
 var _hover_time := 0.0
 
-@onready var _body_visual: Polygon2D = $Body
+@onready var _body_visual: Sprite2D = $Body
 @onready var _rim_visual: Sprite2D = $Rim
 
 
