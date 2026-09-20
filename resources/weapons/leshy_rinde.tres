@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="PassiveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/weapons/passive_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"leshy_rinde"
+display_name = "Leshy-Rinde"
+stat = &"max_hp_pct"
+value_per_level = PackedFloat32Array(5, 10, 15, 20, 25)
+max_level = 5
+evolution_weapon_id = &"uralteichen_axt"

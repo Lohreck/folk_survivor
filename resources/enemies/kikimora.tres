@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/enemies/enemy_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"kikimora"
+display_name = "Kikimora"
+role = 0
+base_hp = 8.0
+base_damage = 5.0
+speed_multiplier = 1.15
+xp_value = 2
+gold_value = 0.06
+spawn_weight = 70.0
+native_region = 1
+is_flying = false
+has_shield = false
+attack_range = 0.0

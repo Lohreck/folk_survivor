@@ -1,0 +1,20 @@
+# Godot 4+ specific ignores
+.godot/
+.import/
+
+# Exported builds
+export/
+*.apk
+*.aab
+*.ipa
+
+# Imported translations (generated at export)
+*.translation
+
+# macOS
+.DS_Store
+
+# Keystore – niemals committen (siehe Technisches Setup §1.2)
+*.keystore
+*.jks
+key.properties

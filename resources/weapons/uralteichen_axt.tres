@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/weapons/weapon_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"uralteichen_axt"
+display_name = "Uralteichen-Axt"
+weapon_type = 0
+scene = null
+base_damage = 10.0
+cooldown = 0.9
+attack_range = 260.0
+half_arc = 0.7
+aoe_radius = 110.0
+chain_count = 0
+bleed_pct = 0.0
+max_level = 8
+evolution_id = &""
+required_passive_id = &""

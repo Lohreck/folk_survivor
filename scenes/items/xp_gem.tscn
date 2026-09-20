@@ -1,0 +1,36 @@
+[gd_scene load_steps=4 format=3 uid="uid://b0xpgem000001"]
+
+[ext_resource type="Script" path="res://scenes/items/xp_gem.gd" id="1"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 8.0
+
+[sub_resource type="Gradient" id="Gradient_glow"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.5, 0.95, 1, 0.75, 0.4, 0.9, 1, 0.25, 0.3, 0.85, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_glow"]
+gradient = SubResource("Gradient_glow")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+width = 64
+height = 64
+
+[node name="XPGem" type="Area2D"]
+collision_layer = 4
+collision_mask = 0
+monitoring = false
+script = ExtResource("1")
+
+[node name="Glow" type="Sprite2D" parent="."]
+modulate = Color(0.55, 0.95, 1, 1)
+scale = Vector2(0.5, 0.5)
+texture = SubResource("GradientTexture2D_glow")
+
+[node name="Gem" type="Polygon2D" parent="."]
+color = Color(0.62, 0.98, 1, 1)
+polygon = PackedVector2Array(0, -8, 6, 0, 0, 8, -6, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_1")

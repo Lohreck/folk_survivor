@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/enemies/enemy_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"domovoi"
+display_name = "Domovoi (verdorben)"
+role = 1
+base_hp = 22.0
+base_damage = 9.0
+speed_multiplier = 0.7
+xp_value = 3
+gold_value = 0.14
+spawn_weight = 20.0
+native_region = 1
+is_flying = false
+has_shield = false
+attack_range = 220.0
+attack_cooldown = 2.2

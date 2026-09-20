@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="RegionData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://resources/regions/region_data.gd" id="1"]
+[ext_resource type="Script" path="res://resources/regions/enemy_spawn_entry.gd" id="2"]
+[ext_resource type="Resource" path="res://resources/enemies/kikimora.tres" id="3"]
+[ext_resource type="Resource" path="res://resources/enemies/domovoi.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/enemies/aitvaras.tres" id="5"]
+
+[sub_resource type="Resource" id="Resource_kiki"]
+script = ExtResource("2")
+enemy = ExtResource("3")
+weight = 70.0
+from_minute = 0.0
+is_elite = false
+
+[sub_resource type="Resource" id="Resource_domo"]
+script = ExtResource("2")
+enemy = ExtResource("4")
+weight = 20.0
+from_minute = 2.0
+is_elite = false
+
+[sub_resource type="Resource" id="Resource_ait"]
+script = ExtResource("2")
+enemy = ExtResource("5")
+weight = 10.0
+from_minute = 3.0
+is_elite = false
+
+[resource]
+script = ExtResource("1")
+id = &"dammerwald"
+display_name = "Der Dammerwald"
+hp_multiplier = 1.0
+damage_multiplier = 1.0
+spawn_basis = 1.5
+enemy_spawn_table = [SubResource("Resource_kiki"), SubResource("Resource_domo"), SubResource("Resource_ait")]
+mini_boss_id = &""
+main_boss_id = &"leshy"
