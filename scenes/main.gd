@@ -131,9 +131,9 @@ func _ready() -> void:
 	# Atmosphäre initialisieren (Diablo-1-Anmutung: Nacht + warmer Lichtkegel).
 	# Nach Playtest-Feedback (M2c) heller: Platzhalter-Sprites müssen lesbar
 	# sein – final wird das via Contrast/Palette gelöst, nicht per Nacht.
-	atmosphere.color = Color(0.6, 0.62, 0.68, 1)
+	atmosphere.color = Color(0.72, 0.73, 0.78, 1)
 	_fit_fullscreen_sprite(vignette_shade)
-	_fit_fullscreen_sprite(fog)
+	_fit_fullscreen_sprite(fog, true)
 	_update_hud()
 
 
@@ -467,11 +467,15 @@ func _update_hud() -> void:
 	xp_bar.value = player.xp_current
 
 
-## Skaliert ein Fullscreen-Sprite auf die aktuelle Viewport-Größe.
-## Sprite2D kennt keine Anker – deshalb zur Laufzeit einpassen (einmalig in
-## _ready, Stretch-Mode „expand" ändert die Fläche nur bei Rotation/Resize).
-func _fit_fullscreen_sprite(sprite: Sprite2D) -> void:
+## Skaliert ein Fullscreen-Sprite auf die sichtbare Fläche.
+## in_world_layers = true: Sprite lebt in einer follow_viewport-Layer (Nebel)
+## und wird vom Kamera-Zoom mitskaliert – dann muss es in WELTkoordinaten
+## kleiner sein (sichtbare Weltfläche = Viewport / Zoom).
+## Screen-Space-Layer (Vignette) nutzen die volle Viewport-Größe.
+func _fit_fullscreen_sprite(sprite: Sprite2D, in_world_layers := false) -> void:
 	var view_size := get_viewport_rect().size
+	if in_world_layers:
+		view_size /= camera.zoom
 	var tex_size := Vector2(sprite.texture.get_width(), sprite.texture.get_height())
 	if tex_size.x > 0.0 and tex_size.y > 0.0:
 		sprite.scale = Vector2(view_size.x / tex_size.x, view_size.y / tex_size.y)

@@ -29,7 +29,7 @@ const _FLY_RETREAT_BELOW := 60.0
 var _hover_time := 0.0
 
 @onready var _body_visual: Sprite2D = $Body
-@onready var _rim_visual: Sprite2D = $Rim
+@onready var _rim_visual: Sprite2D = get_node_or_null("Rim")
 
 
 func _ready() -> void:
