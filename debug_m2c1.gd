@@ -68,6 +68,15 @@ func _physics_process(_d: float) -> bool:
 		return false
 	if _frames == 330:
 		_check_retreat()
+		# Echtes Projektil ueber die Main-Pipeline (Callable von main.gd):
+		# 400 px rechts vom Spieler, Richtung Spieler.
+		_main.call("_fire_enemy_projectile", _player.global_position + Vector2(400, 0),
+			Vector2.LEFT, 320.0, 9.0)
+		return false
+	# Projektil-Treffer (Fix-Verifikation): Schuss Richtung Spieler aus ~190 px
+	# -> nach Flugzeit + etwas Puffer muss der Spieler Schaden genommen haben.
+	if _frames == 420:
+		_check_projectile_hit()
 		_finish()
 		return true
 	return false
@@ -112,6 +121,13 @@ func _check_retreat() -> void:
 	var dist_now: float = _domovoi.global_position.distance_to(_player.global_position)
 	_check("Domovoi weicht zurueck (> 90 px)", dist_now > _retreat_start_dist,
 		"%.0f -> %.0f px" % [_retreat_start_dist, dist_now])
+
+
+func _check_projectile_hit() -> void:
+	print("--- TEST: PROJEKTIL-TRIFFT SPIELER ---")
+	var player: Node2D = _main.get_node("World/Player")
+	_check("Spieler von Projektil getroffen", player.hp < player.max_hp,
+		"%.0f / %.0f HP" % [player.hp, player.max_hp])
 
 
 func _finish() -> void:

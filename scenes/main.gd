@@ -22,6 +22,8 @@ const THUNDER_DATA := preload("res://resources/weapons/donnerkeil.tres")
 const LESHY_DATA := preload("res://resources/weapons/leshy_rinde.tres")
 const PERUN_DATA := preload("res://resources/weapons/perun_amulett.tres")
 const URALTEICHEN_DATA := preload("res://resources/weapons/uralteichen_axt.tres")
+const BOSS_SCENE := preload("res://scenes/enemies/leshy_boss.tscn")
+const BOSS_DATA := preload("res://resources/enemies/leshy.tres")
 const ARENA_SIZE := Vector2(4096, 4096)
 
 const POOL_ENEMIES: StringName = &"enemies"
@@ -51,6 +53,7 @@ const POOL_PROJECTILES: StringName = &"enemy_projectiles"
 @onready var fps_label: Label = $HUD/FpsLabel
 @onready var kills_label: Label = $HUD/KillsLabel
 @onready var death_screen: DeathScreen = $HUD/DeathScreen
+@onready var boss_bar: ProgressBar = $HUD/BossBar
 @onready var level_up_screen: CanvasLayer = $LevelUpScreen
 
 var run_time := 0.0
@@ -73,6 +76,10 @@ var all_passives: Array = []
 ## Gem mit großem Wert mehrere Stufen auf einmal füllt). Ohne Queue würde der
 ## zweite open()-Aufruf die Auswahl des ersten überschreiben.
 var _pending_level_ups := 0
+
+## Hauptboss (M2c-3): spawnt bei Minute 10 (Spawning stoppt -> Boss-Slot).
+var _boss: LeshyBoss = null
+var _boss_spawned := false
 
 
 func _ready() -> void:
@@ -163,9 +170,19 @@ func _process(delta: float) -> void:
 	if SpawnDirector.tick_elite(delta, run_minute):
 		_spawn_enemy(_pick_elite_type(), true)
 
+	# Boss-Slot: Ab Minute 10 stoppt das reguläre Spawnen (Balancing §3.4) –
+	# jetzt kommt der Hauptboss. Genau einmal pro Run.
+	if not _boss_spawned and run_minute >= 10.0:
+		_spawn_boss()
+
 	# FPS-Anzeige alle halbe Sekunde aktualisieren (reicht für Greybox).
 	if Engine.get_process_frames() % 30 == 0:
 		fps_label.text = "FPS: %d" % Engine.get_frames_per_second()
+
+	# Boszbalken (M2c-3): anzeigen, solange Leshy lebt.
+	if _boss != null and is_instance_valid(_boss):
+		boss_bar.visible = true
+		boss_bar.value = _boss.hp_ratio()
 
 	_update_hud()
 
@@ -175,7 +192,9 @@ func _process(delta: float) -> void:
 func _physics_process(_delta: float) -> void:
 	_enemy_grid.clear()
 	for enemy in enemy_container.get_children():
-		if not enemy.visible:
+		# Nur echte Gegner (TestEnemy) – fremde Nodes im Container (z. B. der
+		# Terrain-Hazard des Leshy) haben kein grid_cell-Feld.
+		if not enemy is TestEnemy or not enemy.visible:
 			continue
 		var cell := Vector2i(
 			int(enemy.global_position.x / _ENEMY_GRID_CELL),
@@ -230,6 +249,32 @@ func _fire_enemy_projectile(pos: Vector2, dir: Vector2, speed: float, damage: fl
 	if proj == null:
 		return  # Pool erschöpft → Schuss fällt aus (kein Crash)
 	proj.call("launch", pos, dir, speed, damage)
+
+
+	proj.call("launch", pos, dir, speed, damage)
+
+
+## Spawnt den Hauptboss (M2c-3): Minute 10, nach dem Spawn-Stopp (Boss-Slot).
+## Boss-HP ist fix (Balancing §6): KEIN Zeit-Multiplikator, Region-Multiplikator
+## ist in den Basiswerten bereits eingerechnet -> Multiplikatoren 1.0.
+func _spawn_boss() -> void:
+	_boss_spawned = true
+	var boss: LeshyBoss = BOSS_SCENE.instantiate()
+	enemy_container.add_child(boss)
+	boss.setup_from_data(BOSS_DATA, 1.0, 1.0, false)
+	boss.global_position = _random_offscreen_position()
+	boss.target = player
+	boss.on_died = _on_boss_died
+	_boss = boss
+
+
+## Boss-Sieg: Run erfolgreich beendet (Meilenstein-2-Kriterium: Boss-Sieg
+## ODER -Niederlage nach komplettem 12-Minuten-Run).
+func _on_boss_died(boss: LeshyBoss) -> void:
+	kills += 1
+	running = false
+	death_screen.show_victory(_format_time(run_time), kills, player.level)
+	get_tree().paused = true
 
 
 ## Zählt aktive Gegner (für den SpawnDirector-Deckel).

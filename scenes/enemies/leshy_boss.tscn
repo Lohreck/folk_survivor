@@ -1,0 +1,32 @@
+[gd_scene load_steps=3 format=3 uid="uid://b0leshyboss001"]
+
+[ext_resource type="Script" path="res://scenes/enemies/leshy_boss.gd" id="1"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_leshy"]
+radius = 40.0
+
+[node name="LeshyBoss" type="Area2D"]
+collision_layer = 2
+collision_mask = 0
+monitoring = false
+script = ExtResource("1")
+
+[node name="Body" type="Polygon2D" parent="."]
+color = Color(0.16, 0.42, 0.2, 1)
+polygon = PackedVector2Array(40, 0, 28, 28, 0, 40, -28, 28, -40, 0, -28, -28, 0, -40, 28, -28, 40, 0)
+
+[node name="Face" type="Polygon2D" parent="."]
+color = Color(0.55, 0.68, 0.35, 1)
+polygon = PackedVector2Array(20, 0, 12, 14, 0, 16, -12, 12, -16, 0, -12, -16, 12, -12)
+
+[node name="Eyes" type="Node2D" parent="."]
+
+[node name="EyeLeft" type="Polygon2D" parent="Eyes"]
+position = Vector2(-10, -6)
+color = Color(1, 0.95, 0.55, 1)
+polygon = PackedVector2Array(6, 0, 0, 5, -6, 0, 0, -5)
+
+[node name="EyeRight" type="Polygon2D" parent="Eyes"]
+color = Color(1, 0.95, 0.55, 1)
+position = Vector2(10, -6)
+polygon = PackedVector2Array(6, 0, 0, 5, -6, 0, 0, -5)

@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0terrainhazard1"]
+
+[ext_resource type="Script" path="res://scenes/enemies/terrain_hazard.gd" id="1"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hazard"]
+radius = 70.0
+
+[node name="TerrainHazard" type="Area2D"]
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("1")
+
+[node name="WarnCircle" type="Polygon2D" parent="."]
+modulate = Color(1, 0.9, 0.3, 0.4)
+color = Color(0.55, 0.85, 0.25, 1)
+polygon = PackedVector2Array(70, 0, 64.7, 26.8, 49.5, 49.5, 26.8, 64.7, 0, 70, -26.8, 64.7, -49.5, 49.5, -64.7, 26.8, -70, 0, -64.7, -26.8, -49.5, -49.5, -26.8, -64.7, 0, -70, 26.8, -64.7, 49.5, -49.5, 64.7, -26.8)
+
+[node name="Trees" type="Node2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_hazard")

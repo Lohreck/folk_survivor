@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://b0mainscene001"]
+[gd_scene load_steps=18 format=3 uid="uid://b0mainscene001"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1"]
 [ext_resource type="Script" path="res://scenes/player/player.gd" id="4"]
@@ -7,6 +7,9 @@
 [ext_resource type="Script" path="res://scenes/ui/death_screen.gd" id="6"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_player"]
+radius = 14.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_player_root"]
 radius = 14.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_magnet"]
@@ -54,6 +57,12 @@ fill_to = Vector2(0.5, 1)
 width = 64
 height = 256
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_boss_bg"]
+bg_color = Color(0.08, 0.1, 0.08, 0.85)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_boss_fill"]
+bg_color = Color(0.55, 0.85, 0.3, 1)
+
 [node name="Main" type="Node2D"]
 script = ExtResource("1")
 
@@ -73,6 +82,9 @@ default_color = Color(0.35, 0.42, 0.3, 1)
 collision_layer = 1
 collision_mask = 0
 script = ExtResource("4")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Player"]
+shape = SubResource("CircleShape2D_player_root")
 
 [node name="PlayerLight" type="PointLight2D" parent="World/Player"]
 color = Color(1, 0.86, 0.62, 1)
@@ -220,6 +232,21 @@ grow_vertical = 0
 theme_override_styles/background = SubResource("StyleBoxFlat_xp_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_xp_fill")
 max_value = 20.0
+show_percentage = false
+
+[node name="BossBar" type="ProgressBar" parent="HUD"]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -320.0
+offset_top = 52.0
+offset_right = 320.0
+offset_bottom = 66.0
+grow_horizontal = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_boss_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_boss_fill")
+max_value = 1.0
 show_percentage = false
 
 [node name="DeathScreen" type="ColorRect" parent="HUD"]
