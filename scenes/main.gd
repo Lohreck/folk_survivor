@@ -252,9 +252,6 @@ func _fire_enemy_projectile(pos: Vector2, dir: Vector2, speed: float, damage: fl
 	proj.call("launch", pos, dir, speed, damage)
 
 
-	proj.call("launch", pos, dir, speed, damage)
-
-
 ## Spawnt den Hauptboss (M2c-3): Minute 10, nach dem Spawn-Stopp (Boss-Slot).
 ## Boss-HP ist fix (Balancing §6): KEIN Zeit-Multiplikator, Region-Multiplikator
 ## ist in den Basiswerten bereits eingerechnet -> Multiplikatoren 1.0.
