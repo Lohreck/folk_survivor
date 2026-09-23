@@ -140,3 +140,24 @@ Diese Punkte hängen an Budget, Recht oder Markt – hier nur als Restliste gef�
 - Technik: AdMob-Plugin-Wahl, optionaler Web-Export, Git-Workflow für `.tscn` (`Technisches_Konzept` §11)
 - Charaktere: dritter Region-4-Charakter, Skin-/Kosmetik-Varianten (`Charaktere` §4)
 - Barrierefreiheit: konkrete Farbwerte nur mit echten Simulationstools/Betroffenen finalisierbar
+
+---
+
+## 9. Angewandte Iterationen (Tuning-Log)
+
+Rückwirkendes Protokoll aller bereits umgesetzten Playtest-/Tuning-Schritte, ergänzend zu §1 ("eine Änderung pro Iteration"). Der Commit-Hash verlinkt auf die Detail-Begründung; neue Iterationen werden hier jeweils ergänzt.
+
+| Datum | Iteration | Änderung | Grund (Feedback/Beobachtung) | Commit |
+|---|---|---|---|---|
+| 2026-09-21 | Lesbarkeit Platzhalter | neue, kontrastreichere Sprites; Projektile sichtbar gemacht | Playtest M2c: Figuren/Gegner schwer unterscheidbar | `4e7e82b` |
+| 2026-09-21 | Kamera & Glow | Zoom 1.0 → 1.6, Glow-Vierecke entfernt | Screenshot-Diagnose: zu viel leere Fläche, Glow-Artefakte (u. a. unten rechts) | `dba8426` |
+| 2026-09-23 | Region-Difficulty Dammerwald | hp_mult 1.0 → 0.8, damage_mult 1.0 → 0.8, spawn_basis 1.5 → 1.2/s | Ohne Meta-Progression (M3) kommt man nicht weit – Tutorial-Region soll moderat sein; Hebel gemäß Balancing §5 (Region-Multiplikatoren) | `5e3ccd0` |
+| 2026-09-23 | Fernkämpfer-Verfolgbarkeit | Domovoi speed_mult 0.7 → 0.55, Aitvaras 1.0 → 0.8 (Projektil-Speed 320 px/s bewusst unverändert) | Fernkämpfer schwer zu treffen (Orbit-Logik + Schussdistanz) und trugen überproportional zur Schwierigkeit bei; Ausweichen bleibt Skill | `5c96976` |
+| 2026-09-23 | Steuerung Zweistick | Zielstrecke rechts (Gamepad-Stick + Touch rechte Bildschirmhälfte), Auto-Aim bleibt Default | Produktänderung ggü. GDD "keine Zieltasten" nach Playtest-Wunsch; Umsetzung in GDD §5 und UI-UX-Layout §2 dokumentiert | `ee33802` |
+
+**Offen, hängt am nächsten Playtest:**
+
+- Zu leicht? → spawn_basis 1.2 → 1.35 (Balancing §5)
+- Weiter zu schwer? → hp_mult 0.8 → 0.7
+- Boss-TTK Leshy (19 000 HP, gerechnet mit ~380 DPS → ~50 s Kampf) im echten Run noch nicht verifiziert
+- Tod-Minute-Korridor (§3: 8–12) und Winrate erst mit Telemetrie-Events (M3) messbar

@@ -64,6 +64,7 @@ Größtes Risiko zuerst validieren (Mobile-Performance bei vielen Gegnern), dann
 - Charakter-Freischaltung für mindestens 1 weiteren Charakter
 - Speichersystem (lokal, siehe Technisches Konzept Punkt 6)
 - Meta-Menü-UI (auch wenn visuell noch nicht final)
+- Reroll (3/Lauf, GDD Core-Loop) und Pause-Button (UI-UX-Layout) – bewusst aus M2c verschoben (Entscheidung 2026-09-23)
 
 **Erfolgskriterium:** Playtester spielen freiwillig mehrere Runs hintereinander, weil sie den nächsten Talentbaum-Kauf sehen wollen ("One more run"-Gefühl testbar)
 
