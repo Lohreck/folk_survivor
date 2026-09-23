@@ -46,3 +46,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		restart_requested.emit()
 	elif event is InputEventMouseButton and event.pressed:
 		restart_requested.emit()
+	elif event is InputEventJoypadButton and event.pressed:
+		# Controller (M2c-Feedback): jede beliebige Taste startet neu,
+		# analog "any key" auf dem Game-Over-Screen.
+		restart_requested.emit()

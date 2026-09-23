@@ -8,6 +8,10 @@ class_name ThunderWeapon
 ## Kettensprung-Reichweite (px) zwischen aufeinanderfolgenden Zielen.
 const CHAIN_JUMP_RANGE := 160.0
 
+## Twin-Stick: Kegel (rad) um die Blickrichtung, in dem der Donnerkeil sein
+## Startziel sucht – die Kette darf nicht quer zur Zielen starten.
+const AIM_CONE := 0.9
+
 ## Blitz-Visual: Dauer (s) und Farbe der Kettenlinie.
 const _BOLT_TIME := 0.14
 const _BOLT_COLOR := Color(1.0, 0.95, 0.45, 0.9)
@@ -29,6 +33,37 @@ func _perform_attack(target: Node2D) -> void:
 		if fallback != null:
 			_draw_bolt(global_position, fallback.global_position)
 			_chain_damage(fallback, hit.amount, data.chain_count, visited)
+
+
+## Twin-Stick: Startziel = nächstgelegener Gegner im Kegel um die
+## Blickrichtung (Donnerkeil braucht ein Ziel, darf aber nicht quer zur
+## Zielen starten). Kein Ziel im Kegel = kein Angriff (Cooldown bleibt).
+func _perform_attack_along(aim: Vector2) -> bool:
+	var target := _nearest_in_cone(aim)
+	if target == null:
+		return false
+	_perform_attack(target)
+	return true
+
+
+## Nächstes Ziel in Reichweite innerhalb AIM_CONE der Blickrichtung.
+func _nearest_in_cone(aim: Vector2) -> Node2D:
+	if enemy_container == null:
+		return null
+	var best: Node2D = null
+	var best_dist := data.attack_range * data.attack_range
+	for enemy in enemy_container.get_children():
+		if not enemy.visible:
+			continue
+		var to_enemy: Vector2 = enemy.global_position - global_position
+		var dist := to_enemy.length_squared()
+		if dist >= best_dist:
+			continue
+		if to_enemy.length_squared() > 0.01 and absf(aim.angle_to(to_enemy)) > AIM_CONE:
+			continue
+		best_dist = dist
+		best = enemy
+	return best
 
 
 ## Springt von current zum nächstgelegenen NOCH NICHT getroffenen Gegner.

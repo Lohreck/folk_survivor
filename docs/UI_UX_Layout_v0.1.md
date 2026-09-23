@@ -5,7 +5,7 @@
 
 ## 1. Grundprinzipien
 
-- **Ein-Hand-Bedienbarkeit im Run:** Alle interaktiven Elemente während des Gameplays liegen in der unteren Bildschirmhälfte (Daumen-Reichweite), da der virtuelle Joystick permanent mit einem Daumen bedient wird
+- **Zwei-Hand-Bedienbarkeit im Run (Twin-Stick):** Der linke Daumen bewegt (linke Bildschirmhälfte), der rechte Daumen zielt (rechte Bildschirmhälfte); alle weiteren interaktiven Elemente während des Gameplays liegen in der unteren Bildschirmhälfte (Daumen-Reichweite)
 - **Landscape-Orientierung** (siehe Technisches Konzept) – HUD-Elemente entsprechend links/rechts statt oben/unten verteilt, um die vertikal begrenzte Höhe nicht zu überladen
 - **Reduktion während des Kampfes:** Je mehr auf dem Bildschirm passiert (hohe Gegnerdichte), desto wichtiger ist ein aufgeräumtes HUD – keine überflüssigen Elemente, die von der eigentlichen Gefahr (Gegnerpositionen) ablenken
 
@@ -34,6 +34,7 @@
 | Pause-Button | Oben rechts | Klein, außerhalb der Daumen-Reichweite bewusst (verhindert versehentliches Pausieren im Kampfgetümmel) |
 | XP-Leiste | Unten, volle Breite | Füllt sich kontinuierlich, dezente Pulsation kurz vor Level-Up als visuelle Vorwarnung |
 | Virtueller Joystick | Unten links | Erscheint an der Stelle, wo der Daumen zuerst aufsetzt (dynamisches Joystick-Prinzip, kein fixer Kreis) – vermeidet unbequeme Handhaltung |
+| Ziel-Stick (Twin-Stick) | Rechte Bildschirmhälfte | Zweiter, identisch dynamischer Joystick für die Blickrichtung – parallel zum Bewegungs-Stick mit dem rechten Daumen bedienbar. Gamepad: rechter Stick (`aim_*`-Aktionen), linker Stick/D-Pad bewegt |
 | Charakter-HP | Kleine Anzeige direkt am Charakter-Icon/Sprite selbst (nicht separat im HUD) statt als klassischer Lebensbalken oben | Reduziert Blickwechsel – Spieler schaut ohnehin auf die eigene Spielfigur |
 | Boss-HP-Leiste | Oben, erscheint nur während Boss-/Mini-Boss-Kämpfen | Ausgeblendet in Standard-Wellen, um HUD-Überladung zu vermeiden |
 

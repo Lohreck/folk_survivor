@@ -1,69 +1,113 @@
 class_name JoystickOverlay
 extends CanvasLayer
-## Dynamischer virtueller Joystick (UI/UX §2: erscheint am Touch-Punkt).
-##
-## Wird als CanvasLayer über dem Spiel gerendert, damit er bei Kamera-Bewegung
-## stabil bleibt. Die Ausgabe liegt im statischen Zugriff VirtualJoystickInput.
+## Dynamische virtuelle Joysticks – TWIN-STICK (UI/UX §2 + M2c-Feedback):
+##   linke Bildschirmhälfte  = Bewegung
+##   rechte Bildschirmhälfte = Blickrichtung (Aim)
+## Beide erscheinen am jeweiligen Touch-Punkt; zwei Finger bedienen beide
+## Kanäle parallel (laufen + zielen). Die obere 35% des Bildschirms bleibt
+## HUD vorbehalten. Bei Pause stumm – Klicks auf Level-Up-Karten dürfen
+## keinen Stick auslösen.
 
 const _BG_RADIUS := 70.0
 const _KNOB_RADIUS := 26.0
 const _MAX_DIST := _BG_RADIUS - 10.0
+## Platzhalter-ID für die Maus-Fallback-Kanäle (emulierter Touch hat eigene
+## Indizes, deshalb braucht die Maus einen eigenen Wert).
+const _MOUSE_ID := -2
 
-var _touch_id := -1
-var _center := Vector2.ZERO
-var _knob_pos := Vector2.ZERO
-var _dragging := false
+var _move_id := -1
+var _aim_id := -1
+var _move_center := Vector2.ZERO
+var _aim_center := Vector2.ZERO
 
-@onready var _bg: Panel = $Background
-@onready var _knob: Panel = $Background/Knob
+@onready var _bg_move: Panel = $Background
+@onready var _knob_move: Panel = $Background/Knob
+@onready var _bg_aim: Panel = $BackgroundAim
+@onready var _knob_aim: Panel = $BackgroundAim/Knob
 
 
 func _ready() -> void:
-	VirtualJoystickInput.active = false
-	_bg.visible = false
+	VirtualJoystickInput.reset()
+	_bg_move.visible = false
+	_bg_aim.visible = false
 
 
 func _input(event: InputEvent) -> void:
+	if get_tree().paused:
+		return
 	if event is InputEventScreenTouch:
-		if event.pressed and _touch_id == -1:
-			if event.position.y > get_viewport().get_visible_rect().size.y * 0.35:
-				_touch_id = event.index
-				_center = event.position
-				_bg.position = _center - Vector2(_BG_RADIUS, _BG_RADIUS)
-				_bg.visible = true
-				_dragging = true
-				_update_knob(event.position)
-		elif not event.pressed and event.index == _touch_id:
-			_release()
-	elif event is InputEventScreenDrag and event.index == _touch_id:
-		_update_knob(event.position)
+		if event.pressed:
+			_press(event.index, event.position)
+		else:
+			_release(event.index)
+	elif event is InputEventScreenDrag:
+		_drag(event.index, event.position)
 	elif event is InputEventMouseButton:
-		if event.pressed and _touch_id == -1 and event.position.y > get_viewport().get_visible_rect().size.y * 0.35:
-			_touch_id = -2
-			_center = event.position
-			_bg.position = _center - Vector2(_BG_RADIUS, _BG_RADIUS)
-			_bg.visible = true
-			_dragging = true
-			_update_knob(event.position)
-		elif not event.pressed and _touch_id == -2:
-			_release()
-	elif event is InputEventMouseMotion and _touch_id == -2 and _dragging:
-		_update_knob(event.position)
+		# Maus-Fallback (Desktop): nur, wenn kein Touch einen Kanal hält –
+		# ein emulierter Touch+Maus-Paar am selben Punkt darf nicht doppelt greifen.
+		if event.pressed:
+			if _move_id == -1 and _aim_id == -1:
+				_press(_MOUSE_ID, event.position)
+		else:
+			_release(_MOUSE_ID)
+	elif event is InputEventMouseMotion:
+		_drag(_MOUSE_ID, event.position)
 
 
-func _update_knob(pos: Vector2) -> void:
-	var offset := pos - _center
+## Kanal nach Bildschirmhälfte wählen: links Bewegen, rechts Zielen.
+func _press(id: int, pos: Vector2) -> void:
+	var view := get_viewport().get_visible_rect().size
+	if pos.y <= view.y * 0.35:
+		return  # HUD-Zone oben bleibt frei.
+	if pos.x < view.x * 0.5:
+		if _move_id != -1:
+			return
+		_move_id = id
+		_move_center = pos
+		_place(_bg_move, pos)
+	else:
+		if _aim_id != -1:
+			return
+		_aim_id = id
+		_aim_center = pos
+		_place(_bg_aim, pos)
+
+
+func _release(id: int) -> void:
+	if id == _move_id:
+		_move_id = -1
+		_bg_move.visible = false
+		VirtualJoystickInput.active = false
+		VirtualJoystickInput.direction = Vector2.ZERO
+	if id == _aim_id:
+		_aim_id = -1
+		_bg_aim.visible = false
+		VirtualJoystickInput.aim_active = false
+		VirtualJoystickInput.aim_direction = Vector2.ZERO
+
+
+func _drag(id: int, pos: Vector2) -> void:
+	if id == _move_id:
+		_update_knob(_knob_move, _move_center, pos, false)
+	elif id == _aim_id:
+		_update_knob(_knob_aim, _aim_center, pos, true)
+
+
+func _place(bg: Panel, center: Vector2) -> void:
+	bg.position = center - Vector2(_BG_RADIUS, _BG_RADIUS)
+	bg.visible = true
+
+
+func _update_knob(knob: Panel, center: Vector2, pos: Vector2, is_aim: bool) -> void:
+	var offset := pos - center
 	if offset.length() > _MAX_DIST:
 		offset = offset.normalized() * _MAX_DIST
-	_knob_pos = offset
-	_knob.position = Vector2(_BG_RADIUS, _BG_RADIUS) + _knob_pos - Vector2(_KNOB_RADIUS, _KNOB_RADIUS)
-	VirtualJoystickInput.active = true
-	VirtualJoystickInput.direction = offset / _MAX_DIST
-
-
-func _release() -> void:
-	_touch_id = -1
-	_dragging = false
-	_bg.visible = false
-	VirtualJoystickInput.active = false
-	VirtualJoystickInput.direction = Vector2.ZERO
+	knob.position = Vector2(_BG_RADIUS, _BG_RADIUS) + offset \
+		- Vector2(_KNOB_RADIUS, _KNOB_RADIUS)
+	var out := offset / _MAX_DIST
+	if is_aim:
+		VirtualJoystickInput.aim_active = true
+		VirtualJoystickInput.aim_direction = out
+	else:
+		VirtualJoystickInput.active = true
+		VirtualJoystickInput.direction = out

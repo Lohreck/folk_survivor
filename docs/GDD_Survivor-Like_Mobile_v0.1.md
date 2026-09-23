@@ -13,7 +13,7 @@
 | Engine | Godot 4.x (2D) |
 | Zielgruppe | Casual-bis-Core-Mobile-Spieler, Fans von Vampire Survivors, Brotato, Survivor.io |
 | Session-Länge | 12 Minuten pro Run (Standard-Run, 10–15 je nach Region) |
-| Steuerung | Virtueller Joystick, Auto-Attack, keine Zieltasten |
+| Steuerung | Twin-Stick: links Bewegung, rechts Blickrichtung (zweiter Touch-Stick bzw. rechter Gamepad-Stick); Auto-Attack zielt automatisch, solange manuell nicht gezielt wird |
 | Monetarisierung | Free-to-Play: Rewarded Ads + Battle Pass + kosmetische/Charakter-IAPs |
 
 ---
@@ -22,7 +22,7 @@
 
 1. Spieler wählt Charakter + Startwaffe im Meta-Menü
 2. Run startet auf einer Map, Gegnerwellen spawnen kontinuierlich und werden über Zeit dichter
-3. Spieler bewegt sich (Joystick), Waffen feuern automatisch auf nächste Gegner
+3. Spieler bewegt sich (linker Stick), Waffen feuern automatisch auf nächste Gegner – oder entlang der Blickrichtung, wenn der Ziel-Stick gehalten wird
 4. Getötete Gegner droppen XP-Gems → Level-Up → Auswahl aus 3 zufälligen Waffen-/Passiv-Upgrades (optionaler Reroll, siehe UI-Dokument)
 5. Alle paar Minuten: Elite-Gegner oder Mini-Boss mit angekündigten Spezialangriffen
 6. Run endet durch Spielertod oder Sieg über den Hauptboss (Sieg-Screen mit Loot-Zusammenfassung)

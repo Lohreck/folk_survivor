@@ -288,6 +288,6 @@ horizontal_alignment = 1
 [node name="Hint" type="Label" parent="HUD/DeathScreen/VBox"]
 theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
-text = "[R] oder Tap zum Neustart"
+text = "[R] / Tap / Controller-Taste zum Neustart"
 
 [node name="LevelUpScreen" parent="." instance=ExtResource("3")]

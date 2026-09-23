@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 
 EnemyPoolManager="*res://autoload/enemy_pool_manager.gd"
 SpawnDirector="*res://autoload/spawn_director.gd"
+InputSetup="*res://scripts/input_setup.gd"
 
 [debug]
 

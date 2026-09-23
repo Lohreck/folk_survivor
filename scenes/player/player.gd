@@ -4,7 +4,10 @@
 ## ein reservierter nativer Typ ist. Der Run referenziert sie per Node-Pfad.
 extends Area2D
 ##
-## - Bewegung per virtuellem Joystick (Mobile) oder WASD/Pfeiltasten (Desktop)
+## - Bewegung per virtuellem Joystick (Mobile), WASD/Pfeiltasten (Desktop)
+##   oder linker Gamepad-Stick/D-Pad (Twin-Stick, InputSetup-Autoload)
+## - Zielrichtung (Twin-Stick): rechter Gamepad-Stick oder zweiter Touch-Stick
+##   (rechte Bildschirmhälfte) – Waffen zielen dann manuell statt auto
 ## - HP mit Treffer-Cooldown (0.5 s Invulnerabilität nach Treffer)
 ## - XP-Level: Signal level_up_ready bei Erreichen der nächsten Stufe
 ## - HP-Anzeige direkt an der Figur (UI/UX §2: kein separater HUD-Balken)
@@ -33,6 +36,10 @@ var xp_to_next := 6.0
 
 var _contact_timer := 0.0
 
+## Aktuelle Zielrichtung (Twin-Stick). != ZERO, solange der Ziel-Stick
+## gehalten wird; sonst ZERO = Auto-Modus (Waffen zielen selbst).
+var _aim_vector := Vector2.ZERO
+
 @onready var _body: Sprite2D = $Body
 @onready var _hp_bar_bg: ColorRect = $HpBar/Background
 @onready var _hp_bar_fill: ColorRect = $HpBar/Fill
@@ -55,19 +62,29 @@ func _physics_process(delta: float) -> void:
 	if _contact_timer > 0.0:
 		_contact_timer -= delta
 
-	# Bewegung: Joystick (Touch) hat Vorrang vor Tastatur.
+	# Bewegung: Joystick (Touch) hat Vorrang vor Tastatur/Stick.
 	var dir := Vector2.ZERO
 	if VirtualJoystickInput.active:
 		dir = VirtualJoystickInput.get_output()
 	if dir == Vector2.ZERO:
-		dir = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+		dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+
+	# Zielrichtung (Twin-Stick): Aim-Touch (rechte Bildschirmhälfte) hat
+	# Vorrang vor dem rechten Gamepad-Stick. Ohne Eingabe ZERO = Auto-Modus.
+	var aim := VirtualJoystickInput.get_aim()
+	if aim == Vector2.ZERO:
+		aim = Input.get_vector("aim_left", "aim_right", "aim_up", "aim_down")
+	_aim_vector = aim
 
 	global_position += dir * speed * delta
 	if has_meta("arena_size"):
 		var arena: Vector2 = get_meta("arena_size")
 		global_position = global_position.clamp(Vector2.ZERO, arena)
 
-	if dir != Vector2.ZERO:
+	# Blickrichtung: Zielrichtung hat Vorrang, sonst Bewegungsrichtung.
+	if _aim_vector != Vector2.ZERO:
+		rotation = _aim_vector.angle()
+	elif dir != Vector2.ZERO:
 		rotation = dir.angle()
 
 	_apply_contact_damage()
@@ -149,6 +166,13 @@ func heal(amount: float) -> void:
 ## Setzt einen multiplikativen Tempo-Bonus (1.0 = Basis).
 func set_speed_multiplier(mult: float) -> void:
 	speed = BASE_SPEED * mult
+
+
+## Zielrichtung für die Waffen (Twin-Stick): != ZERO, solange manuell gezielt
+## wird. Waffen prüfen das (weapon_base._manual_aim) und greifen dann in
+## Blickrichtung an statt automatisch auf den nächsten Gegner.
+func get_aim_direction() -> Vector2:
+	return _aim_vector
 
 
 ## Setzt den Magnet-Radius (Pickup-Reichweite) inkl. Kollisionsform.

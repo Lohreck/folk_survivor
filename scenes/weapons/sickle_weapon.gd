@@ -15,7 +15,18 @@ func _ready() -> void:
 
 
 func _perform_attack(target: Node2D) -> void:
-	var direction := (target.global_position - global_position).normalized()
+	_sweep_along((target.global_position - global_position).normalized())
+
+
+## Twin-Stick: Kegelschlag in Blickrichtung (Gate = Gegner in Reichweite).
+func _perform_attack_along(aim: Vector2) -> bool:
+	if _find_nearest_enemy() == null:
+		return false
+	_sweep_along(aim.normalized())
+	return true
+
+
+func _sweep_along(direction: Vector2) -> void:
 	rotation = direction.angle()
 
 	_sweep_visual.visible = true

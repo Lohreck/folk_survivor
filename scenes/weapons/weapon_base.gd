@@ -89,15 +89,43 @@ func _physics_process(delta: float) -> void:
 
 	_cooldown_timer -= delta
 	if _cooldown_timer <= 0.0:
-		var target := _find_nearest_enemy()
-		if target != null:
-			_perform_attack(target)
-			_cooldown_timer = data.cooldown * cooldown_mult
+		# Twin-Stick: Mit gehaltener Zielrichtung entlang der Blickrichtung
+		# angreifen, sonst Auto-Modus auf den nächstgelegenen Gegner.
+		var aim := _manual_aim()
+		if aim != Vector2.ZERO:
+			if _perform_attack_along(aim):
+				_cooldown_timer = data.cooldown * cooldown_mult
+		else:
+			var target := _find_nearest_enemy()
+			if target != null:
+				_perform_attack(target)
+				_cooldown_timer = data.cooldown * cooldown_mult
 
 
-## Überschrieben von der konkreten Waffe.
+## Überschrieben von der konkreten Waffe (Auto-Modus).
 func _perform_attack(target: Node2D) -> void:
 	pass
+
+
+## Angriff entlang der manuellen Blickrichtung (Twin-Stick). Gate:
+## mindestens ein Gegner in Reichweite – sonst schlägt die Waffe nicht ins
+## Leere. Rückgabe false = nicht angegriffen (Cooldown bleibt erhalten).
+## Konkrete Waffen überschreiben für eigene Ziel-Auswahl (z. B. Donnerkeil
+## einen Kegel um die Blickrichtung).
+func _perform_attack_along(aim: Vector2) -> bool:
+	var target := _find_nearest_enemy()
+	if target == null:
+		return false
+	_perform_attack(target)
+	return true
+
+
+## Manuelle Zielrichtung des Besitzers oder ZERO = Auto-Modus.
+func _manual_aim() -> Vector2:
+	if owner_node != null and is_instance_valid(owner_node) \
+			and owner_node.has_method("get_aim_direction"):
+		return owner_node.get_aim_direction()
+	return Vector2.ZERO
 
 
 ## Nächsten Gegner in Reichweite finden (Kegel-Reichweite).
