@@ -71,8 +71,8 @@ Hinweis: Konkretisiert `Technisches_Konzept_Godot_v0.1.md` für den Projektstart
 | Gegner | Tempo | effektive px/s | Kollisionsradius |
 |---|---|---|---|
 | Kikimora | 1.15 | 230 | 12 |
-| Domovoi | 0.70 | 140 | 16 |
-| Aitvaras | 1.00 | 200 | 14 |
+| Domovoi | 0.45 | 90 | 16 |
+| Aitvaras | 0.65 | 130 | 14 |
 | Upyr | 1.25 | 250 | 14 |
 | Vodyanoy | 0.65 | 130 | 18 |
 | Velnias-Diener | 0.80 | 160 | 16 |
