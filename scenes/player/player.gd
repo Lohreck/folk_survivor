@@ -81,11 +81,13 @@ func _physics_process(delta: float) -> void:
 		var arena: Vector2 = get_meta("arena_size")
 		global_position = global_position.clamp(Vector2.ZERO, arena)
 
-	# Blickrichtung: Zielrichtung hat Vorrang, sonst Bewegungsrichtung.
-	if _aim_vector != Vector2.ZERO:
-		rotation = _aim_vector.angle()
-	elif dir != Vector2.ZERO:
-		rotation = dir.angle()
+	# Blickrichtung: Figur bleibt aufrecht (Diablo-Stil), wird nur an der
+	# horizontalen Achse gespiegelt. Zielrichtung hat Vorrang vor Bewegung.
+	var face := _aim_vector if _aim_vector != Vector2.ZERO else dir
+	if face.x < 0.0:
+		_body.flip_h = true
+	elif face.x > 0.0:
+		_body.flip_h = false
 
 	_apply_contact_damage()
 

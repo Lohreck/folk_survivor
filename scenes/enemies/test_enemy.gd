@@ -137,7 +137,12 @@ func _physics_process(delta: float) -> void:
 
 	if velocity != Vector2.ZERO:
 		global_position += velocity * delta
-		rotation = velocity.angle()
+		# Figur bleibt aufrecht; Blickrichtung nur horizontal spiegeln
+		# (Diablo-Stil – kein Wetterfahnen-Drehen mehr).
+		if velocity.x < 0.0:
+			_visual.flip_h = true
+		elif velocity.x > 0.0:
+			_visual.flip_h = false
 
 	# Hook für Unterklassen (Fernkampf-Schusslogik etc.).
 	_think_extra(delta, target_dist, dir)

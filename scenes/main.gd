@@ -89,6 +89,9 @@ func _ready() -> void:
 	camera.limit_right = int(ARENA_SIZE.x)
 	camera.limit_bottom = int(ARENA_SIZE.y)
 
+	# Nahtlose Waldboden-Kachel als Hintergrund (Atmosphäre, Diablo-Look).
+	($World/Background as TextureRect).texture = preload("res://assets/sprites/ground.png")
+
 	# Pools vorwärmen. Zuerst eventuelle Reste eines vorherigen Runs freigeben –
 	# beim Szenen-Neustart wird die alte Szene erst verzögert freigegeben, ihre
 	# _exit_tree-Aufräumung kann also nach dieser _ready() laufen.

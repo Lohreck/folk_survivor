@@ -59,7 +59,12 @@ func _physics_process(_d: float) -> bool:
 			_parse_aim(JOY_AXIS_RIGHT_Y, -1.0)  # Gamepad: rechter Stick nach OBEN.
 		60:
 			_check_gamepad_aim()
+			# Zielung links (Gamepad-X): Figur muss flip_h setzen und
+			# aufrecht bleiben – Flip wird bei frame70 verifiziert.
+			_parse_aim(JOY_AXIS_RIGHT_X, -1.0)
 			_parse_aim(JOY_AXIS_RIGHT_Y, 0.0)  # loslassen
+		65:
+			_parse_aim(JOY_AXIS_RIGHT_X, 0.0)  # Zielung links loslassen (Frame-Puffer)
 		70:
 			_check_aim_released()
 			_setup_weapon_test()
@@ -129,15 +134,18 @@ func _check_gamepad_aim() -> void:
 	print("--- TEST: GAMEPAD (RECHTER STICK) ---")
 	var aim: Vector2 = _player.get_aim_direction()
 	_check("Rechter Stick -> Blickrichtung oben", aim.distance_to(Vector2.UP) < 0.01, str(aim))
-	_check("Spieler dreht in Blickrichtung (-90 deg)",
-		absf(wrapf(_player.rotation - (-PI / 2.0), -PI, PI)) < 0.01,
-		"rotation=%.3f" % _player.rotation)
+	_check("Spieler bleibt aufrecht (keine Wetterfahnen-Rotation)",
+		absf(_player.rotation) < 0.01, "rotation=%.3f" % _player.rotation)
 
 
 func _check_aim_released() -> void:
 	print("--- TEST: STICK LOSLASSEN ---")
+	_parse_aim(JOY_AXIS_RIGHT_X, 0.0)  # die bei frame60 gesetzte Zielung links
 	_check("Zielung zurueck auf Auto-Modus (ZERO)",
 		_player.get_aim_direction() == Vector2.ZERO, str(_player.get_aim_direction()))
+	_check("Figur links gespiegelt via flip_h (weiterhin aufrecht)",
+		(_player.get_node("Body") as Sprite2D).flip_h and absf(_player.rotation) < 0.01,
+		"flip_h=%s rotation=%.3f" % [(_player.get_node("Body") as Sprite2D).flip_h, _player.rotation])
 
 
 ## --- Waffen-Aim ----------------------------------------------------------

@@ -69,10 +69,11 @@ script = ExtResource("1")
 
 [node name="World" type="Node2D" parent="."]
 
-[node name="Background" type="ColorRect" parent="World"]
+[node name="Background" type="TextureRect" parent="World"]
+expand_mode = 1
+stretch_mode = 1
 offset_right = 4096.0
 offset_bottom = 4096.0
-color = Color(0.18, 0.2, 0.16, 1)
 
 [node name="ArenaBorder" type="Line2D" parent="World"]
 points = PackedVector2Array(0, 0, 4096, 0, 4096, 4096, 0, 4096, 0, 0)
@@ -95,7 +96,7 @@ shadow_enabled = true
 shadow_filter = 1
 
 [node name="Body" type="Sprite2D" parent="World/Player"]
-scale = Vector2(1.5, 1.5)
+scale = Vector2(1, 1)
 texture = ExtResource("7")
 
 [node name="HpBar" type="Node2D" parent="World/Player"]
