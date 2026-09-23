@@ -155,6 +155,7 @@ Rückwirkendes Protokoll aller bereits umgesetzten Playtest-/Tuning-Schritte, er
 | 2026-09-23 | Fernkämpfer-Verfolgbarkeit | Domovoi speed_mult 0.7 → 0.55, Aitvaras 1.0 → 0.8 (Projektil-Speed 320 px/s bewusst unverändert) | Fernkämpfer schwer zu treffen (Orbit-Logik + Schussdistanz) und trugen überproportional zur Schwierigkeit bei; Ausweichen bleibt Skill | `5c96976` |
 | 2026-09-23 | Steuerung Zweistick | Zielstrecke rechts (Gamepad-Stick + Touch rechte Bildschirmhälfte), Auto-Aim bleibt Default | Produktänderung ggü. GDD "keine Zieltasten" nach Playtest-Wunsch; Umsetzung in GDD §5 und UI-UX-Layout §2 dokumentiert | `ee33802` |
 | 2026-09-23 | Fernkämpfer-Schaden & Tempo | Domovoi Schaden 9 → 7, Tempo 0.55 → 0.45 (90 px/s); Aitvaras Schaden 7 → 6, Tempo 0.8 → 0.65 (130 px/s) | Playtest-Feedback: Treffer der Fernkämpfer noch zu schmerzhaft, Verfolger weiterhin zu schnell; Projektile (320 px/s) und HP bewusst unverändert | `d0be50e` |
+| 2026-09-24 | Art-Upgrade Diablo-1-nah | Alle Sprites neu generiert (gedämpfte Palette, Licht von oben, Textur/Outline, Glut-Augen, Stickerei, Birkenflecken), Waldboden-Kachel 64×64 statt flacher ColorRect, Figuren aufrecht + flip_h statt Rotation, Feind-Materialien für Lesbarkeit unter CanvasModulate aufgehellt | Nutzerwunsch vor M2c-Abschluss: Platzhalter durch atmosphärische Grafik in Richtung Diablo 1 mit slawischem Stil ersetzen | `11c241e` |
 
 **Offen, hängt am nächsten Playtest:**
 
