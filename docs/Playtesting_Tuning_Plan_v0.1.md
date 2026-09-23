@@ -154,6 +154,7 @@ Rückwirkendes Protokoll aller bereits umgesetzten Playtest-/Tuning-Schritte, er
 | 2026-09-23 | Region-Difficulty Dammerwald | hp_mult 1.0 → 0.8, damage_mult 1.0 → 0.8, spawn_basis 1.5 → 1.2/s | Ohne Meta-Progression (M3) kommt man nicht weit – Tutorial-Region soll moderat sein; Hebel gemäß Balancing §5 (Region-Multiplikatoren) | `5e3ccd0` |
 | 2026-09-23 | Fernkämpfer-Verfolgbarkeit | Domovoi speed_mult 0.7 → 0.55, Aitvaras 1.0 → 0.8 (Projektil-Speed 320 px/s bewusst unverändert) | Fernkämpfer schwer zu treffen (Orbit-Logik + Schussdistanz) und trugen überproportional zur Schwierigkeit bei; Ausweichen bleibt Skill | `5c96976` |
 | 2026-09-23 | Steuerung Zweistick | Zielstrecke rechts (Gamepad-Stick + Touch rechte Bildschirmhälfte), Auto-Aim bleibt Default | Produktänderung ggü. GDD "keine Zieltasten" nach Playtest-Wunsch; Umsetzung in GDD §5 und UI-UX-Layout §2 dokumentiert | `ee33802` |
+| 2026-09-23 | Fernkämpfer-Schaden & Tempo | Domovoi Schaden 9 → 7, Tempo 0.55 → 0.45 (90 px/s); Aitvaras Schaden 7 → 6, Tempo 0.8 → 0.65 (130 px/s) | Playtest-Feedback: Treffer der Fernkämpfer noch zu schmerzhaft, Verfolger weiterhin zu schnell; Projektile (320 px/s) und HP bewusst unverändert | `d0be50e` |
 
 **Offen, hängt am nächsten Playtest:**
 
