@@ -162,6 +162,6 @@ Rückwirkendes Protokoll aller bereits umgesetzten Playtest-/Tuning-Schritte, er
 **Offen, hängt am nächsten Playtest:**
 
 - Zu leicht? → spawn_basis 1.2 → 1.35 (Balancing §5)
-- Weiter zu schwer? → hp_mult 0.8 → 0.7
+- Weiter zu schwer? → hp_mult 0.8 → 0.7 – Playtest 2026-09-28: auch nach Kikimora −40 % weiterhin sehr schwer, aber **bewusst eingefroren bis Meta-Progression (M3)**; dann diesen Hebel zuerst ziehen
 - Boss-TTK Leshy (19 000 HP, gerechnet mit ~380 DPS → ~50 s Kampf) im echten Run noch nicht verifiziert
 - Tod-Minute-Korridor (§3: 8–12) und Winrate erst mit Telemetrie-Events (M3) messbar
