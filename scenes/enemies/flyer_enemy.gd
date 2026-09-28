@@ -8,8 +8,8 @@ class_name FlyerEnemy
 ##     – Weiterer Orbit-Radius (kreist außerhalb der Bodenkämpfer-Front)
 ##     – Schweben: sinusförmiges Auf/Ab des Sprites (rein visuell, die
 ##       Kollisionsfläche bleibt stabil – wichtig für faire Treffer)
-##   Aus Technisches Setup §3.2: Kollisionsradius 14 (wie Kikimora), Tempo
-##   200 px/s (= Spieler-Basis), kommt aus der EnemyData (speed_multiplier 1.0).
+##   Aus Technisches Setup §3.2: Kollisionsradius 16, Tempo 130 px/s
+##   (speed_multiplier 0.65 aus der EnemyData).
 ##
 ## Elite-Verwendung (Balancing §3.3): Aitvaras-Gruppe ab Minute 5 als erste
 ## Elite (×10 HP via setup_from_data) – gleiche Szene, nur andere Werte.

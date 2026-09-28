@@ -3,8 +3,8 @@ class_name RangedEnemy
 ## Fernkampf-Gegner (M2c-1) – Basis für Domovoi (verdorben).
 ##
 ## Verhalten (Werte aus EnemyData: attack_range = 220, attack_cooldown = 2.2):
-##   Nah (< retreat_below = 90 px):  Rückzug – weicht aus, um Schussdistanz zu halten
-##   Ideal (90–220 px):              STEHT + schießt alle attack_cooldown s
+##   Nah (< retreat_below = 80 px):  Rückzug – weicht aus, um Schussdistanz zu halten
+##   Ideal (80–220 px):              STEHT + schießt alle attack_cooldown s
 ##   Fern (> 220 px):                Anflug wie Nahkämpfer (Orbit-Logik der Basis)
 ##
 ## Erbt das komplette TestEnemy-Verhalten (Orbit, Separation, Debuffs,
@@ -24,8 +24,8 @@ var _attack_timer := 0.0
 func _ready() -> void:
 	super._ready()
 	# Fernkämpfer-Verhalten konfigurieren (Basis-Konstanten überschreiben).
-	preferred_orbit_radius = 190.0
-	retreat_below = 90.0
+	preferred_orbit_radius = 150.0
+	retreat_below = 80.0
 	_attack_timer = randf_range(0.4, 1.2)  # versetzte Schüsse im Schwarm
 
 

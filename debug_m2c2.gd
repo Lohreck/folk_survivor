@@ -122,6 +122,20 @@ func _check_shots() -> void:
 	_check("Vor Minute 5 Fallback = hoechste HP (Domovoi)",
 		early != null and early.id == &"domovoi",
 		str(early.id) if early != null else "null")
+	print("--- TEST: SPAWN-WELLEN ---")
+	var dir: Node = root.get_node_or_null("SpawnDirector")
+	dir.call("reset")  # Wellen-Zustand sauber (set_region lief weiter oben)
+	var in_wave := 0
+	for i in 90:  # 1.5 s Burst bei 60 Hz
+		in_wave += int(dir.call("tick_spawning", 1.0 / 60.0, 2.0, 0))
+	var in_calm := 0
+	for i in 270:  # 4.5 s Ruhephase
+		in_calm += int(dir.call("tick_spawning", 1.0 / 60.0, 2.0, 0))
+	# Rate(2) = 1.56/s -> Welle-Budget = 1.56 x 6 = 9.4 Gegner im Burst.
+	_check("Welle spawnt gebuendelt (1.5 s)", in_wave >= 5,
+		"%d Gegner im Burst" % in_wave)
+	_check("Danach Ruhephase (4.5 s)", in_calm == 0,
+		"%d Gegner in der Ruhe" % in_calm)
 
 
 func _finish() -> void:

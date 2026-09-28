@@ -9,21 +9,21 @@
 [sub_resource type="Resource" id="Resource_kiki"]
 script = ExtResource("2")
 enemy = ExtResource("3")
-weight = 70.0
+weight = 78.0
 from_minute = 0.0
 is_elite = false
 
 [sub_resource type="Resource" id="Resource_domo"]
 script = ExtResource("2")
 enemy = ExtResource("4")
-weight = 20.0
+weight = 15.0
 from_minute = 2.0
 is_elite = false
 
 [sub_resource type="Resource" id="Resource_ait"]
 script = ExtResource("2")
 enemy = ExtResource("5")
-weight = 10.0
+weight = 7.0
 from_minute = 3.0
 is_elite = false
 

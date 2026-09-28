@@ -34,6 +34,13 @@ const HP_SPIKES := {
 ## Schaden skaliert linear (verhindert One-Shots ab Minute 8, Balancing §4).
 const DAMAGE_PER_MINUTE := 0.03
 
+## Wellen-Spawn (Playtest-Feedback: „Gegner greifen eher in Wellen an"):
+## Statt gleichmäßigem Tröpfchen lädt das Spawnen in Pulsen – alle
+## WAVE_INTERVAL s eine Welle, die sich über WAVE_BURST_WINDOW s leert.
+## Der Mittelwert bleibt exakt spawn_rate_for() (Balancing §3.1).
+const WAVE_INTERVAL := 6.0
+const WAVE_BURST_WINDOW := 1.5
+
 ## Aktive Region (wird vom Run gesetzt).
 var region: RegionData
 
@@ -42,6 +49,11 @@ var _spawn_accumulator := 0.0
 var _elite_timer := 0.0
 ## Nächster regulärer Elite-Spawn (Balancing §6: ab Minute 5, danach 60–90 s).
 var _next_elite_minute := 5.0
+## Wellen-Zustand: Ruhezeit bis zur nächsten Welle (s), Rest-Laufzeit der
+## laufenden Welle (s) und aktuelle Füllrate des Bursts (Gegner/s).
+var _wave_timer := 0.0
+var _wave_burst_time := 0.0
+var _wave_rate := 0.0
 
 
 ## HP-Multiplikator der aktuellen Run-Minute (Balancing §4, Tabelle exakt).
@@ -118,19 +130,41 @@ func set_region(data: RegionData) -> void:
 	_spawn_accumulator = 0.0
 	_elite_timer = 0.0
 	_next_elite_minute = 5.0
+	_wave_timer = 0.0
+	_wave_burst_time = 0.0
+	_wave_rate = 0.0
 
 
 ## Zentrale Spawn-Logik pro Physik-Tick (vom Run aufgerufen).
 ## Gibt die Anzahl der in diesem Tick zu spawnenden Gegner zurück.
 ## active_count = aktuell aktive Gegner (für den Deckel).
+##
+## Verteilung in Wellen (Playtest-Feedback: „Gegner greifen eher in Wellen
+## an"): Statt gleichmäßigem Tröpfchen lädt das Spawnen in Pulsen – alle
+## WAVE_INTERVAL s eine Welle, die sich über WAVE_BURST_WINDOW s leert.
+## Der Mittelwert bleibt exakt spawn_rate_for(minute) (Balancing §3.1).
 func tick_spawning(delta: float, minute: float, active_count: int) -> int:
 	if region == null or spawning_finished(minute):
 		return 0
 	var cap := active_cap_for(minute)
 	if active_count >= cap:
 		return 0
-	var rate := spawn_rate_for(minute)
-	_spawn_accumulator += rate * delta
+	if _wave_burst_time > 0.0:
+		# Laufende Welle: Budget konstant über das Burst-Fenster verteilen.
+		_wave_burst_time -= delta
+		if _wave_burst_time <= 0.0:
+			# Welle geleert -> Ruhephase bis zur nächsten Welle.
+			_wave_timer = WAVE_INTERVAL - WAVE_BURST_WINDOW
+			_wave_rate = 0.0
+	elif _wave_timer > 0.0:
+		_wave_timer -= delta
+	else:
+		# Neue Welle: Budget = Rate × Intervall, geleert über das Burst-Fenster.
+		_wave_burst_time = WAVE_BURST_WINDOW
+		_wave_rate = spawn_rate_for(minute) * WAVE_INTERVAL / WAVE_BURST_WINDOW
+	if _wave_burst_time <= 0.0:
+		return 0  # Ruhephase zwischen den Wellen
+	_spawn_accumulator += _wave_rate * delta
 	var spawned := 0
 	while _spawn_accumulator >= 1.0 and active_count + spawned < cap:
 		_spawn_accumulator -= 1.0
@@ -152,3 +186,6 @@ func reset() -> void:
 	_spawn_accumulator = 0.0
 	_elite_timer = 0.0
 	_next_elite_minute = 5.0
+	_wave_timer = 0.0
+	_wave_burst_time = 0.0
+	_wave_rate = 0.0

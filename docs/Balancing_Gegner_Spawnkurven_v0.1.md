@@ -39,8 +39,8 @@ Das Balancing folgt drei getrennten Skalierungs-Achsen, die sich multiplizieren:
 | Gegner | Region | Rolle | Basis-HP | Schaden | Tempo (× Spieler) | XP | Gold |
 |---|---|---|---|---|---|---|---|
 | Kikimora | 1 | Schwarm | 8 | 5 | 1.15 | 2 | 0.06 |
-| Domovoi (verdorben) | 1 | Fernkampf | 22 | 7 | 0.45 | 3 | 0.14 |
-| Aitvaras | 1 (vereinzelt) / 2 | Flieger | 15 | 6 | 0.65 | 2 | 0.10 |
+| Domovoi (verdorben) | 1 | Fernkampf | 22 | 5 | 0.45 | 3 | 0.14 |
+| Aitvaras | 1 (vereinzelt) / 2 | Flieger | 15 | 4 | 0.65 | 2 | 0.10 |
 | Upyr | 2 | Verfolger / Lifesteal | 30 | 12 | 1.25 | 3 | 0.13 |
 | Vodyanoy | 2 | Sog / Nahkampf | 45 | 15 | 0.65 | 3 | 0.16 |
 | Velnias-Diener | 3 | Schild / Nahkampf | 60 | 14 | 0.80 | 3 | 0.30 |
@@ -63,9 +63,11 @@ Spawn_Rate(Minute t) = Region_Spawn_Basis × (1 + 0.30 × (t - 1))
 ```
 → **eingefroren ab Minute 9** (Wert von Minute 9 gilt für 9–10 weiter; bei Minute 10 stoppt das Spawnen für den Boss). Grund: Der Deckel aus Technisches Konzept Punkt 8 wird so erreicht, bevor der Boss kommt.
 
+**Wellen-Spawn (Playtest-Feedback):** Die Rate ist der *Mittelwert* – ausgelöst wird in Pulsen: alle **6 s** eine Welle, die sich über **1.5 s** leert, dazwischen Ruhephase. Formeln und Erwartungswerte (auch Punkt 3.1.1) bleiben unverändert.
+
 | Region | Spawn-Basis (Minute 1) | Rate bei Minute 9 (eingefroren) |
 |---|---|---|
-| 1. Dammerwald | 1.5 / s | 5.1 / s |
+| 1. Dammerwald | 1.2 / s | 4.1 / s |
 | 2. Sumpfmoor | 2.0 / s | 6.8 / s |
 | 3. Dorf der Vergessenen | 2.5 / s | 8.5 / s |
 | 4. Reich von Nav' | 3.0 / s | 10.2 / s |
@@ -76,7 +78,7 @@ Abgeleitet aus den Spawn-Raten (Punkt 3.1) × Ø-Multiplikator **2.5** (Minuten 
 
 | Region | Ø Spawns/Run | Ø Kills/Run (~70 %) |
 |---|---|---|
-| 1. Dammerwald | ~2.700 | ~1.900 |
+| 1. Dammerwald | ~2.200 | ~1.500 |
 | 2. Sumpfmoor | ~3.600 | ~2.500 |
 | 3. Dorf der Vergessenen | ~4.500 | ~3.100 |
 | 4. Reich von Nav' | ~5.400 | ~3.800 |
@@ -96,7 +98,7 @@ Die `spawn_weight`-Werte der `EnemyData`-Resources werden pro Region verschoben,
 
 | Region | Standard-Mix | Ab Minute 5 zusätzlich | Ab Minute 9 zusätzlich |
 |---|---|---|---|
-| 1 | Kikimora 70% / Domovoi 20% / Aitvaras 10% | Erste Elite (Aitvaras-Gruppe) | Domovoi-Anteil ↑ |
+| 1 | Kikimora 78% / Domovoi 15% / Aitvaras 7% | Erste Elite (Aitvaras-Gruppe) | Domovoi-Anteil ↑ |
 | 2 | Upyr 35% / Aitvaras 25% / Domovoi 20% / Vodyanoy 20% | Vodyanoy ↑ | Rusalka-Spawn (wiederkehrend) |
 | 3 | Domovoi 40% / Kikimora 35% / Velnias-Diener 25% | Velnias ↑ | Kikimora-Dichte ↑ |
 | 4 | Elite-Mix aus allen Regionen + Žaltys | Žaltys ↑ | gemischte Elite-Wellen |
@@ -291,7 +293,7 @@ Waffen_DPS(Level) = Start_DPS × 1.30 ^ (Level - 1)
 | Kaukas-Rolle | Mini-Boss **und** Hausgeist-Typ (zählt für Hausgeist-Boni) | Regionen-Dokument ergänzt |
 | Run-Standardlänge | **12 Min** als Referenz-Run | GDD & Regionen auf 12-Min-Referenz präzisiert |
 | Waffen-/Passiv-Slots | max. 5 aktiv + 5 passiv (nicht 6/6) | GDD §3.1 korrigiert |
-| Kill-Zahl / Gold | ~1.900–3.800 Kills/Run, Ø-Gold/Kill 0.06–0.30 | Wirtschafts-Dokument auf Variante (a) umgestellt (Run-Gold & Talentkosten unverändert) |
+| Kill-Zahl / Gold | ~1.500–3.800 Kills/Run, Ø-Gold/Kill 0.06–0.30 | Wirtschafts-Dokument auf Variante (a) umgestellt (Run-Gold & Talentkosten unverändert) |
 | Rusalka-Rolle | wiederkehrender Mini-Boss-Gegner (Elite-Tier); Poludnitsa = scripted Mini-Boss | Setting-, Regionen- & Balancing-Dokument vereinheitlicht |
 | Region-1-Mini-Boss | **keiner** – Region 1 bleibt Tutorial-Region mit nur einem Endboss | Regionen-Dokument dokumentiert |
 | Regions-Freischaltung | **strikt linear** (Region n+1 nach Hauptboss-Sieg von Region n) | Regionen- & GDD-Dokument dokumentiert |
@@ -299,7 +301,7 @@ Waffen_DPS(Level) = Start_DPS × 1.30 ^ (Level - 1)
 | Doppel-Evolution | 2 kuratierte Kombis, Region 4 + Ahnen-Item, fusioniert zu 1 Slot | Waffen-Dokument dokumentiert (kein Gegner-Balancing nötig) |
 | Reroll | 3 Gratis-Rerolls/Run, bis zu +2 via Talent „Wahrsagerei" | UI- & Wirtschafts-Dokument dokumentiert (kein Gegner-Balancing nötig) |
 
-**Aufgelöster Widerspruch:** Das Wirtschafts-Dokument rechnete ursprünglich mit ~350–800 Kills/Run. Mit den Spawn-Kurven aus Punkt 3 sind es **~1.900–3.800** – das entspricht dem Genre-Standard. Umgesetzt wurde **Variante (a)**: Kill-Zahlen hoch, Ø-Gold-pro-Kill ~5× runter, sodass die Run-Gesamtsummen und damit die Talentbaum-Kosten praktisch unverändert bleiben.
+**Aufgelöster Widerspruch:** Das Wirtschafts-Dokument rechnete ursprünglich mit ~350–800 Kills/Run. Mit den Spawn-Kurven aus Punkt 3 sind es **~1.500–3.800** – das entspricht dem Genre-Standard. Umgesetzt wurde **Variante (a)**: Kill-Zahlen hoch, Ø-Gold-pro-Kill ~5× runter, sodass die Run-Gesamtsummen und damit die Talentbaum-Kosten praktisch unverändert bleiben.
 
 ---
 

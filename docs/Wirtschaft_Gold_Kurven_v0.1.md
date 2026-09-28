@@ -29,7 +29,7 @@ Run-Gold = (Kills × Ø-Gold-pro-Kill) + Truhen-Gold + Boss-Bonus + Überlebensz
 
 | Region | Ø-Gold pro Kill | Ø Kills bei vollem Run (12 Min.) | Truhen-Gold (2–3 pro Run) | Boss-Bonus (Hauptboss) |
 |---|---|---|---|---|
-| 1. Dammerwald | 0.08 | ~1.900 | 15–25 je Truhe | 80 |
+| 1. Dammerwald | 0.08 | ~1.500 | 15–25 je Truhe | 80 |
 | 2. Sumpfmoor | 0.13 | ~2.500 | 20–35 je Truhe | 130 |
 | 3. Dorf der Vergessenen | 0.15 | ~3.100 | 30–45 je Truhe | 200 |
 | 4. Reich von Nav' | 0.22 | ~3.800 | 40–60 je Truhe | 320 |
