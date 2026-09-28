@@ -379,10 +379,11 @@ func _apply_inventory_upgrade(id: StringName) -> void:
 
 
 ## Passiv-Stat-Boni auf den Spieler anwenden (Waffen-Dokument §3).
+## Beide Werte rechnen auf der Charakter-Basis (Holzfäller: 140 HP, 0.8×).
 func _apply_passive_stats() -> void:
 	var hp_pct := inventory.passive_total(&"max_hp_pct")
 	if hp_pct > 0.0:
-		player.set_max_hp(100.0 * (1.0 + hp_pct / 100.0))
+		player.set_max_hp_percent(hp_pct)
 	var speed_pct := inventory.passive_total(&"move_speed_pct")
 	if speed_pct > 0.0:
 		player.set_speed_multiplier(1.0 + speed_pct / 100.0)

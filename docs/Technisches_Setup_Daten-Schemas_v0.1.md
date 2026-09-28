@@ -62,6 +62,7 @@ Hinweis: Konkretisiert `Technisches_Konzept_Godot_v0.1.md` für den Projektstart
 | Parameter | Wert |
 |---|---|
 | Basis-Geschwindigkeit | **200 px/s** (Multiplikatoren je Charakter: 0.8–1.3) |
+| Start-HP (Holzfäller) | **140** (Charaktere-Dokument §2.1) |
 | Kollisionsradius (Body) | 14 px |
 | Magnet-/Pickup-Radius (Basis) | 64 px |
 | Kontakt-Schadens-Cooldown | 0.5 s (Invulnerabilität nach Treffer) |

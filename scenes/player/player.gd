@@ -16,15 +16,20 @@ signal died
 signal hp_changed(current: float, maximum: float)
 signal level_up_ready
 
-## Referenz-Charakter „Verbannte Soldat" (Balanced): 100 HP, 1.0× Tempo.
+## Startcharakter „Der Holzfäller" (Tank, Charaktere-Dokument §2.1):
+## 140 HP und 0.8× Tempo – hohe HP statt Ausweichen.
+const CHARACTER_MAX_HP := 140.0
+const CHARACTER_SPEED_MULT := 0.8
+
+## Referenz-Basistempo (Technisches Setup §3.1): 1.0× = 200 px/s.
 const BASE_SPEED := 200.0
 
-@export var max_hp := 100.0
+@export var max_hp := CHARACTER_MAX_HP
 ## Kontakt-Schadens-Cooldown (Technisches Setup §3.1).
 @export var contact_cooldown := 0.5
 
-var speed := BASE_SPEED
-var hp := 100.0
+var speed := BASE_SPEED * CHARACTER_SPEED_MULT
+var hp := CHARACTER_MAX_HP
 var level := 1
 var magnet_radius := 64.0
 var alive := true
@@ -99,7 +104,12 @@ func _apply_contact_damage() -> void:
 		return
 	for area in _hitbox.get_overlapping_areas():
 		if area is TestEnemy:
-			take_damage(area.contact_damage)
+			var dmg: float = area.contact_damage
+			# „Zähe Haut" (Charaktere-Dokument §2.1): 10 % weniger Schaden
+			# von Schwarm-Gegnern (Kikimora-Typ). Fernkämpfer/Boss unberührt.
+			if area.enemy_role == EnemyData.Role.SWARM:
+				dmg *= 0.9
+			take_damage(dmg)
 			return
 
 
@@ -156,6 +166,12 @@ func set_max_hp(new_max: float) -> void:
 	_update_hp_bar()
 
 
+## Wendet den kumulierten HP-Prozent-Bonus eines Passivs auf die
+## Charakter-Basis an (Holzfäller: 140 HP – nicht auf Basis 100).
+func set_max_hp_percent(pct: float) -> void:
+	set_max_hp(CHARACTER_MAX_HP * (1.0 + pct / 100.0))
+
+
 ## Heilt den Spieler (Level-Up-Fallback, wenn nichts mehr aufwertbar ist).
 func heal(amount: float) -> void:
 	if not alive:
@@ -165,9 +181,9 @@ func heal(amount: float) -> void:
 	_update_hp_bar()
 
 
-## Setzt einen multiplikativen Tempo-Bonus (1.0 = Basis).
+## Setzt einen multiplikativen Tempo-Bonus (1.0 = Charakter-Basis 0.8×).
 func set_speed_multiplier(mult: float) -> void:
-	speed = BASE_SPEED * mult
+	speed = BASE_SPEED * CHARACTER_SPEED_MULT * mult
 
 
 ## Zielrichtung für die Waffen (Twin-Stick): != ZERO, solange manuell gezielt

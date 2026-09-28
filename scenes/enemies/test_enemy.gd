@@ -46,6 +46,9 @@ var preferred_orbit_radius := -1.0
 ## Rückzugsschwelle: Unterhalb dieser Distanz läuft der Gegner WEG vom Ziel
 ## (Fernkämpfer drängen sich nicht an die Nahkampffront). -1 = aus.
 var retreat_below := -1.0
+## Gegner-Rolle aus der EnemyData (SWARM = Schwarm-Gegner wie Kikimora).
+## Wird u. a. vom Charakter-Passiv „Zähe Haut" gelesen (Player).
+var enemy_role := EnemyData.Role.SWARM
 
 var _hp := 0.0
 var _wander_offset := 0.0
@@ -215,6 +218,7 @@ func take_damage(amount: float) -> void:
 func setup_from_data(data: EnemyData, hp_mult: float, dmg_mult: float, elite: bool) -> void:
 	max_hp = data.base_hp * hp_mult * (10.0 if elite else 1.0)
 	contact_damage = data.base_damage * dmg_mult
+	enemy_role = data.role
 	xp_value = float(data.xp_value)
 	move_speed = data.effective_move_speed()
 	# _hp wird in activate() auf max_hp gesetzt – dort auch die Daten berücksichtigen.
