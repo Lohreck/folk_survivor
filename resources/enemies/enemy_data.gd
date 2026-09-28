@@ -15,7 +15,7 @@ enum Role { SWARM, RANGED, FLYER, ELITE, MINIBOSS, BOSS }
 @export var scene: PackedScene
 @export var base_hp: float = 8.0
 @export var base_damage: float = 5.0
-## Multiplikator auf Spieler-Basistempo (200 px/s), z. B. 1.15 = Kikimora.
+## Multiplikator auf Spieler-Basistempo (200 px/s), z. B. 0.69 = Kikimora.
 @export var speed_multiplier: float = 1.15
 @export var xp_value: int = 2
 @export var gold_value: float = 0.06       # fractional (Balancing §2)

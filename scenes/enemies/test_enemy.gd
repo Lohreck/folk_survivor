@@ -8,7 +8,7 @@ class_name TestEnemy
 ##   Der Kontaktschaden wird deshalb im Spieler gepollt (get_overlapping_areas),
 ##   nicht über area_entered auf dem Gegner.
 
-## Multiplikator auf Spieler-Basistempo (200 px/s), z. B. 1.15 = Kikimora.
+## Multiplikator auf Spieler-Basistempo (200 px/s), z. B. 0.69 = Kikimora.
 ## Wird beim Spawn aus EnemyData.effective_move_speed() gesetzt.
 @export var move_speed := 230.0
 ## Basis-HP (wird beim Spawn aus EnemyData gesetzt, Kikimora = 8).

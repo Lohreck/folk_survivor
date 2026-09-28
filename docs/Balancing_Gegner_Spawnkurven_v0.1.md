@@ -38,7 +38,7 @@ Das Balancing folgt drei getrennten Skalierungs-Achsen, die sich multiplizieren:
 
 | Gegner | Region | Rolle | Basis-HP | Schaden | Tempo (× Spieler) | XP | Gold |
 |---|---|---|---|---|---|---|---|
-| Kikimora | 1 | Schwarm | 8 | 5 | 1.15 | 2 | 0.06 |
+| Kikimora | 1 | Schwarm | 8 | 5 | 0.69 | 2 | 0.06 |
 | Domovoi (verdorben) | 1 | Fernkampf | 22 | 5 | 0.45 | 3 | 0.14 |
 | Aitvaras | 1 (vereinzelt) / 2 | Flieger | 15 | 4 | 0.65 | 2 | 0.10 |
 | Upyr | 2 | Verfolger / Lifesteal | 30 | 12 | 1.25 | 3 | 0.13 |

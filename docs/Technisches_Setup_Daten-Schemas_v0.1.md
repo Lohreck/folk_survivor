@@ -70,7 +70,7 @@ Hinweis: Konkretisiert `Technisches_Konzept_Godot_v0.1.md` für den Projektstart
 ### 3.2 Gegner (abgeleitet aus Balancing-Tempo-Multiplikatoren)
 | Gegner | Tempo | effektive px/s | Kollisionsradius |
 |---|---|---|---|
-| Kikimora | 1.15 | 230 | 10 |
+| Kikimora | 0.69 | 138 | 10 |
 | Domovoi | 0.45 | 90 | 14 |
 | Aitvaras | 0.65 | 130 | 16 |
 | Upyr | 1.25 | 250 | 14 |
