@@ -17,6 +17,9 @@ class_name TestEnemy
 @export var contact_damage := 5.0
 ## XP-Wert (wird beim Spawn aus EnemyData gesetzt, Kikimora = 2).
 @export var xp_value := 2.0
+## Gold-Wert (wird beim Spawn aus EnemyData gesetzt, Kikimora = 0.06) –
+## fraktional; das Run-Crediting summiert und rundet erst beim Run-Ende.
+@export var gold_value := 0.0
 
 const _SEPARATION_DISTANCE := 18.0
 const _SEPARATION_DISTANCE_SQ := _SEPARATION_DISTANCE * _SEPARATION_DISTANCE
@@ -220,6 +223,7 @@ func setup_from_data(data: EnemyData, hp_mult: float, dmg_mult: float, elite: bo
 	contact_damage = data.base_damage * dmg_mult
 	enemy_role = data.role
 	xp_value = float(data.xp_value)
+	gold_value = data.gold_value
 	move_speed = data.effective_move_speed()
 	# _hp wird in activate() auf max_hp gesetzt – dort auch die Daten berücksichtigen.
 	_hp = max_hp

@@ -44,3 +44,5 @@ spawn_basis = 1.2
 enemy_spawn_table = [SubResource("Resource_kiki"), SubResource("Resource_domo"), SubResource("Resource_ait"), SubResource("Resource_ait_elite")]
 mini_boss_id = &""
 main_boss_id = &"leshy"
+boss_gold_bonus = 80
+estimated_full_run_gold = 250

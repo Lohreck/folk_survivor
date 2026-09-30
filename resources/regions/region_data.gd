@@ -16,3 +16,8 @@ extends Resource
 @export var mini_boss_id: StringName                    # leer = kein Mini-Boss (Region 1)
 @export var main_boss_id: StringName
 @export var unlock_condition: StringName
+## Gold-Bonus beim Boss-Sieg (Wirtschaft §2.2, Region 1 = 80).
+@export var boss_gold_bonus: int = 80
+## Geschätzter Gold-Wert eines vollständigen 12-Min-Runs inkl. Truhen
+## (Wirtschaft §2.2) – Basis des Überlebenszeit-Bonus bei Tod (§2.3).
+@export var estimated_full_run_gold: int = 250

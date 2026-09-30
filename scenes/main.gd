@@ -59,6 +59,10 @@ const POOL_PROJECTILES: StringName = &"enemy_projectiles"
 var run_time := 0.0
 var kills := 0
 var running := true
+## Fraktionales Run-Gold aus Kill-Werten (EnemyData.gold_value, Wirtschaft §2.1).
+## Wird erst beim Run-Ende über das Talent „Glückshändler“ skaliert, gerundet
+## und in MetaProgress kreditiert (dort Autosave je Mutation).
+var run_gold := 0.0
 
 ## Uniform-Grid für die Gegner-Separation (O(1) pro Gegner, kein N²-Loop).
 const _ENEMY_GRID_CELL := 40
@@ -111,6 +115,11 @@ func _ready() -> void:
 	player.set_meta("arena_size", ARENA_SIZE)
 	# Run-Stats als Meta (für Upgrades, die Waffe/Regen betreffen).
 	player.set_meta("run_stats", {"damage_mult": 1.0, "cooldown_mult": 1.0, "hp_regen": 0.0})
+
+	# Talent „Ahnensegen“ (Wirtschaft §3): +5 Start-HP pro Stufe.
+	var hp_bonus: float = MetaProgress.start_hp_bonus()
+	if hp_bonus > 0.0:
+		player.set_max_hp(player.max_hp + hp_bonus)
 
 	# Waffen-Daten-Pools aufbauen (für Level-Up-Optionen) und Startwaffe setzen.
 	all_weapons = [AXE_DATA, SICKLE_DATA, THUNDER_DATA]
@@ -274,8 +283,20 @@ func _spawn_boss() -> void:
 func _on_boss_died(boss: LeshyBoss) -> void:
 	kills += 1
 	running = false
-	death_screen.show_victory(_format_time(run_time), kills, player.level)
+	run_gold += boss.gold_value
+	var earned := _credit_run_gold(REGION_SCENE.boss_gold_bonus)
+	MetaProgress.mark_boss_defeated(&"leshy")
+	death_screen.show_victory(_format_time(run_time), kills, player.level, earned)
 	get_tree().paused = true
+
+
+## Run-Gold kreditieren (Wirtschaft §2.1): Kills × Gold-Rate-Talent plus
+## flacher Bonus (Boss-Sieg §2.2 bzw. Überlebenszeit-Bonus §2.3 bei Tod vor
+## Run-Ende). Gibt den gerundeten Gesamtwert für den Run-End-Screen zurück.
+func _credit_run_gold(flat_bonus: int) -> int:
+	var earned := roundi(run_gold * MetaProgress.gold_rate_multiplier()) + flat_bonus
+	MetaProgress.add_gold(earned)
+	return earned
 
 
 ## Zählt aktive Gegner (für den SpawnDirector-Deckel).
@@ -313,6 +334,7 @@ func _random_offscreen_position() -> Vector2:
 
 func _on_enemy_died(enemy: TestEnemy) -> void:
 	kills += 1
+	run_gold += enemy.gold_value
 	var gem := EnemyPoolManager.get_instance(POOL_GEMS)
 	if gem != null:
 		gem.global_position = enemy.global_position
@@ -440,7 +462,12 @@ func _evolve_axe() -> void:
 
 func _on_player_died() -> void:
 	running = false
-	death_screen.show_results(_format_time(run_time), kills, player.level)
+	# Überlebenszeit-Bonus bei Tod vor Run-Ende (Wirtschaft §2.3):
+	# (überlebte Minuten / 12) × Voll-Run-Gold-Wert × 0.5.
+	var minutes := run_time / 60.0
+	var survival := roundi(minutes / 12.0 * float(REGION_SCENE.estimated_full_run_gold) * 0.5)
+	var earned := _credit_run_gold(survival)
+	death_screen.show_results(_format_time(run_time), kills, player.level, earned)
 	# Baum pausieren: friert Gegner, Spawns, Waffe und Timer ein.
 	get_tree().paused = true
 
