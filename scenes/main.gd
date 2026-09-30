@@ -56,7 +56,7 @@ const POOL_PROJECTILES: StringName = &"enemy_projectiles"
 @onready var kills_label: Label = $HUD/KillsLabel
 @onready var death_screen: DeathScreen = $HUD/DeathScreen
 @onready var boss_bar: ProgressBar = $HUD/BossBar
-@onready var level_up_screen: CanvasLayer = $LevelUpScreen
+@onready var level_up_screen: LevelUpScreen = $LevelUpScreen
 
 var run_time := 0.0
 var kills := 0
@@ -82,6 +82,13 @@ var all_passives: Array = []
 ## Gem mit großem Wert mehrere Stufen auf einmal füllt). Ohne Queue würde der
 ## zweite open()-Aufruf die Auswahl des ersten überschreiben.
 var _pending_level_ups := 0
+## Verbleibende Karten-Rerolls im laufenden Run: Basis 3 + „Wahrsagerei“
+## (UI/UX §3, Wirtschaft §3). Wird beim Run-Start gesetzt, nicht gespeichert.
+var rerolls_left := 0
+## Pause-UI (M3e): Button oben rechts + Overlay, per Code gebaut (wie Menü).
+var _pause_layer: CanvasLayer
+var _pause_overlay: Control
+var _pause_button: Button
 
 ## Hauptboss (M2c-3): spawnt bei Minute 10 (Spawning stoppt -> Boss-Slot).
 var _boss: LeshyBoss = null
@@ -129,6 +136,8 @@ func _ready() -> void:
 	var hp_bonus: float = MetaProgress.start_hp_bonus()
 	if hp_bonus > 0.0:
 		player.set_max_hp(player.max_hp + hp_bonus)
+	# Talent „Wahrsagerei“ (UI/UX §3): Reroll-Budget für diesen Run.
+	rerolls_left = MetaProgress.start_rerolls()
 
 	# Waffen-Daten-Pools aufbauen (für Level-Up-Optionen) und Startwaffe setzen.
 	all_weapons = [AXE_DATA, SICKLE_DATA, THUNDER_DATA, PHIOLE_DATA]
@@ -139,8 +148,10 @@ func _ready() -> void:
 	player.died.connect(_on_player_died)
 	player.level_up_ready.connect(_on_level_up_ready)
 	level_up_screen.card_chosen.connect(_on_upgrade_chosen)
+	level_up_screen.reroll_requested.connect(_on_reroll_requested)
 	death_screen.restart_requested.connect(_restart)
 	death_screen.menu_requested.connect(_goto_menu)
+	_build_pause_ui()
 
 	# SpawnDirector: Region laden und Kurven zurücksetzen.
 	SpawnDirector.set_region(REGION_SCENE)
@@ -370,13 +381,30 @@ func _show_next_level_up() -> void:
 		player.heal(30.0)
 		return
 	options.shuffle()
-	level_up_screen.open(options.slice(0, 3))
+	level_up_screen.open(options.slice(0, 3), rerolls_left)
 
 
 func _on_upgrade_chosen(id: StringName) -> void:
 	_apply_upgrade_choice(id)
 	# Nächstes aufgeschobenes Level-Up direkt nachreichen.
 	_show_next_level_up()
+
+
+## Reroll (M3e, UI/UX §3): Budget abziehen und die 3 Angebotskarten neu
+## ziehen – Evolutionen/Fusionen werden dabei aus dem aktuellen Inventar
+## neu berechnet. Läuft synchron im Signalpfad, das Tree-Pausieren ist für
+## diesen Aufruf also ohne Bedeutung.
+func _on_reroll_requested() -> void:
+	if rerolls_left <= 0:
+		return
+	rerolls_left -= 1
+	var options := inventory.build_upgrade_options(all_weapons, all_passives)
+	if options.is_empty():
+		# Kein Pool – die bisherigen Karten behalten (refill würde leeren).
+		rerolls_left += 1
+		return
+	options.shuffle()
+	level_up_screen.refill(options.slice(0, 3), rerolls_left)
 
 
 ## Wendet die gewählte Level-Up-Option an (M2b: Waffen/Passivs/Evolution).
@@ -486,6 +514,88 @@ func _on_player_died() -> void:
 	death_screen.show_results(_format_time(run_time), kills, player.level, earned)
 	# Baum pausieren: friert Gegner, Spawns, Waffe und Timer ein.
 	get_tree().paused = true
+
+
+# ---------------------------------------------------------------------------
+# Pause (M3e, UI-UX §4)
+# ---------------------------------------------------------------------------
+
+## Button oben rechts (bewusst außerhalb der Daumen-Reichweite, UI-UX §4) plus
+## Overlay mit Weiter/Neu/Menü. Alles per Code gebaut – wie das Meta-Menü.
+func _build_pause_ui() -> void:
+	_pause_layer = CanvasLayer.new()
+	_pause_layer.name = "PauseLayer"
+	# Über dem HUD (5), aber unter dem LevelUpScreen (20) – während der
+	# Kartenwahl liegt die Pause-Kante also unter dem Screen; der Guard in
+	# _on_pause_pressed ist zusätzlich die harte Kante.
+	_pause_layer.layer = 10
+	_pause_layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(_pause_layer)
+
+	_pause_button = Button.new()
+	_pause_button.name = "PauseButton"
+	_pause_button.text = "II"
+	_pause_button.tooltip_text = "Pause"
+	_pause_button.add_theme_font_size_override("font_size", 22)
+	_pause_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_pause_button.offset_left = -76
+	_pause_button.offset_top = 12
+	_pause_button.offset_right = -16
+	_pause_button.offset_bottom = 64
+	_pause_button.pressed.connect(_on_pause_pressed)
+	_pause_layer.add_child(_pause_button)
+
+	_pause_overlay = ColorRect.new()
+	_pause_overlay.name = "PauseOverlay"
+	_pause_overlay.color = Color(0, 0, 0, 0.62)
+	_pause_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_pause_overlay.visible = false
+	_pause_layer.add_child(_pause_overlay)
+
+	var center := CenterContainer.new()
+	center.name = "Center"
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_pause_overlay.add_child(center)
+	var box := VBoxContainer.new()
+	box.name = "VBox"
+	box.add_theme_constant_override("separation", 16)
+	center.add_child(box)
+	var heading := Label.new()
+	heading.name = "Heading"
+	heading.text = "Pause"
+	heading.add_theme_font_size_override("font_size", 40)
+	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(heading)
+	box.add_child(_make_overlay_button("Weiter", _on_pause_resume, "BtnResume"))
+	box.add_child(_make_overlay_button("Neu starten", _restart, "BtnRestart"))
+	box.add_child(_make_overlay_button("Zum Menü", _goto_menu, "BtnMenu"))
+
+
+func _make_overlay_button(text: String, on_pressed: Callable, node_name: String) -> Button:
+	var btn := Button.new()
+	btn.name = node_name
+	btn.text = text
+	btn.custom_minimum_size = Vector2(320, 58)
+	btn.add_theme_font_size_override("font_size", 22)
+	btn.pressed.connect(on_pressed)
+	return btn
+
+
+func _on_pause_pressed() -> void:
+	# Kein Pause während Level-Up, Tod oder schon pausiert – der Guard ist die
+	# harte Kante, weil PauseLayer (10) unter LevelUpScreen (20) liegt und der
+	# Button dort erreichbar bliebe.
+	if not running or get_tree().paused or level_up_screen.visible or death_screen.visible:
+		return
+	get_tree().paused = true
+	_pause_button.visible = false
+	_pause_overlay.visible = true
+
+
+func _on_pause_resume() -> void:
+	get_tree().paused = false
+	_pause_overlay.visible = false
+	_pause_button.visible = true
 
 
 func _restart() -> void:

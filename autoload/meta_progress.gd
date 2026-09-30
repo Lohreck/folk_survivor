@@ -137,6 +137,11 @@ func gold_rate_multiplier() -> float:
 	return 1.0 + 0.05 * talent_level(&"gold_rate")
 
 
+## „Wahrsagerei“: Basis 3 Rerolls pro Run, +1 pro Stufe (UI/UX §3, Wirtschaft §3).
+func start_rerolls() -> int:
+	return 3 + talent_level(&"rerolls")
+
+
 ## „Wahrsagerei“: +1 Reroll pro Stufe (UI-UX §3: 3 Gratis-Rerolls als Basis).
 func extra_rerolls() -> int:
 	return talent_level(&"rerolls")
