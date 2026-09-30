@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Nav' – Slawische Horde"
 config/description="M2 – Region 1 (Vertical Slice): Loop, Waffen, Meta-Basis, Leshy-Boss"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 

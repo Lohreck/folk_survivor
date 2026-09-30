@@ -131,6 +131,7 @@ func _ready() -> void:
 	player.level_up_ready.connect(_on_level_up_ready)
 	level_up_screen.card_chosen.connect(_on_upgrade_chosen)
 	death_screen.restart_requested.connect(_restart)
+	death_screen.menu_requested.connect(_goto_menu)
 
 	# SpawnDirector: Region laden und Kurven zurücksetzen.
 	SpawnDirector.set_region(REGION_SCENE)
@@ -479,6 +480,13 @@ func _restart() -> void:
 	else:
 		# Fallback, falls die Szene nicht als current_scene läuft.
 		get_tree().change_scene_to_file(scene_file_path)
+
+
+## Zurück ins Meta-Menü (UI-UX §5: „Zum Menü“). Erst pausieren aufheben,
+## sonst läuft der Menü-Baum im pausierten Zustand weiter.
+func _goto_menu() -> void:
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
 
 
 ## Pool-Instanzen beim Szenenende freigeben. Ohne das würden die Pools beim

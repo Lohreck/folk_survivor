@@ -7,15 +7,24 @@ class_name DeathScreen
 ## Eingaben mehr – der Neustart wäre unmöglich.
 
 signal restart_requested
+signal menu_requested
 
 var _stats_label: Label
 var _title_label: Label
+var _menu_button: Button
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_stats_label = get_node("VBox/Stats")
 	_title_label = get_node("VBox/Title")
+	# Sekundär-Button nach UI-UX §5: „Zum Menü“ – das Primär-Verhalten
+	# (beliebige Eingabe = Nochmal spielen) bleibt unverändert.
+	_menu_button = Button.new()
+	_menu_button.name = "MenuButton"
+	_menu_button.text = "Zum Menü"
+	get_node("VBox").add_child(_menu_button)
+	_menu_button.pressed.connect(func() -> void: menu_requested.emit())
 	hide()
 
 
