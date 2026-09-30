@@ -51,6 +51,10 @@ var talents := {}
 var unlocked_characters: Array[StringName] = []
 var unlocked_regions: Array[int] = []
 var bosses_defeated: Array[StringName] = []
+## Aktuell ausgewählter Charakter für den nächsten Run. Bewusst NICHT Teil
+## des Saves – die Auswahl gilt pro Sitzung, Start ist immer der Holzfäller;
+## das Menü setzt den Wert nur über select_character() (freigespielt + spielbar).
+var selected_character: StringName = &"holzaeller"
 
 
 func _ready() -> void:
@@ -141,6 +145,19 @@ func extra_rerolls() -> int:
 # ---------------------------------------------------------------------------
 # Freischaltungen
 # ---------------------------------------------------------------------------
+
+## Wählt den Charakter für den nächsten Run – nur freigespielte, spielbare
+## Kits (CharacterDefs „playable“, Charaktere-Dokument §1).
+## false = Auswahl ungültig (unbekannt, Kit fehlt oder noch gesperrt).
+func select_character(id: StringName) -> bool:
+	var def := CharacterDefs.get_def(id)
+	if def.is_empty() or not bool(def.get("playable", false)):
+		return false
+	if not is_character_unlocked(id):
+		return false
+	selected_character = id
+	return true
+
 
 func is_character_unlocked(id: StringName) -> bool:
 	return id in unlocked_characters

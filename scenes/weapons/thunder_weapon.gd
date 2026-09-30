@@ -73,7 +73,7 @@ func _chain_damage(current: Node2D, amount: float, chain_left: int, visited: Arr
 	if current == null or not is_instance_valid(current) or not current.visible or current in visited:
 		return
 	visited.append(current)
-	current.take_damage(amount)
+	current.take_damage(amount * damage_bonus_vs(current))
 	if chain_left <= 0:
 		return
 	# Nächstes Ziel ab der Position des LETZTEN Treffers (Kettenlinie entlang).
@@ -98,6 +98,9 @@ func _draw_bolt(from_pos: Vector2, to_pos: Vector2) -> void:
 
 
 func _fade_bolt(bolt: Line2D) -> void:
+	# Deferred-Aufruf kann nach Szenenwechsel ohne Baum ankommen (get_tree() null).
+	if not is_inside_tree():
+		return
 	await get_tree().create_timer(_BOLT_TIME).timeout
 	if bolt != null and is_instance_valid(bolt):
 		bolt.queue_free()

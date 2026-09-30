@@ -4,7 +4,7 @@ extends Resource
 ## DPS-Kurve über Level: base_damage × 1.30^(level-1) (Balancing §8).
 ## Level 1–8 (max_level), danach nur noch Evolution (Waffen-Dokument §1).
 
-enum Type { MELEE_ARC, BLEED_MELEE, CHAIN }
+enum Type { MELEE_ARC, BLEED_MELEE, CHAIN, THROWN_AOE }
 
 @export var id: StringName
 @export var display_name: String

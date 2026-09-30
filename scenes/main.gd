@@ -16,9 +16,11 @@ const REGION_SCENE := preload("res://resources/regions/region_dammerwald.tres")
 const AXE_SCENE := preload("res://scenes/weapons/axe_weapon.tscn")
 const SICKLE_SCENE := preload("res://scenes/weapons/sickle_weapon.tscn")
 const THUNDER_SCENE := preload("res://scenes/weapons/thunder_weapon.tscn")
+const PHIOLE_SCENE := preload("res://scenes/weapons/phiole_weapon.tscn")
 const AXE_DATA := preload("res://resources/weapons/axe_holzfaenger.tres")
 const SICKLE_DATA := preload("res://resources/weapons/sichel.tres")
 const THUNDER_DATA := preload("res://resources/weapons/donnerkeil.tres")
+const PHIOLE_DATA := preload("res://resources/weapons/weihwasser_phiole.tres")
 const LESHY_DATA := preload("res://resources/weapons/leshy_rinde.tres")
 const PERUN_DATA := preload("res://resources/weapons/perun_amulett.tres")
 const URALTEICHEN_DATA := preload("res://resources/weapons/uralteichen_axt.tres")
@@ -113,6 +115,13 @@ func _ready() -> void:
 
 	# Arena-Größe als Meta an den Spieler (für Positions-Clamp).
 	player.set_meta("arena_size", ARENA_SIZE)
+	# Charakter-Kit anwenden (CharacterDefs: HP, Tempo, Passiv) – der
+	# Spieler-Ready lief vor diesem Aufruf, deshalb explizit konfigurieren.
+	var char_def := CharacterDefs.get_def(MetaProgress.selected_character)
+	player.configure_character(
+		float(char_def.get("max_hp", 140.0)),
+		float(char_def.get("speed_mult", 0.8)),
+		StringName(char_def.get("passive", &"zaehe_haut")))
 	# Run-Stats als Meta (für Upgrades, die Waffe/Regen betreffen).
 	player.set_meta("run_stats", {"damage_mult": 1.0, "cooldown_mult": 1.0, "hp_regen": 0.0})
 
@@ -122,7 +131,7 @@ func _ready() -> void:
 		player.set_max_hp(player.max_hp + hp_bonus)
 
 	# Waffen-Daten-Pools aufbauen (für Level-Up-Optionen) und Startwaffe setzen.
-	all_weapons = [AXE_DATA, SICKLE_DATA, THUNDER_DATA]
+	all_weapons = [AXE_DATA, SICKLE_DATA, THUNDER_DATA, PHIOLE_DATA]
 	all_passives = [LESHY_DATA, PERUN_DATA]
 	_give_starting_weapon()
 
@@ -412,9 +421,13 @@ func _apply_passive_stats() -> void:
 		player.set_speed_multiplier(1.0 + speed_pct / 100.0)
 
 
-## Startwaffe (Axt) geben und beim Spieler anheften.
+## Startwaffe des gewählten Charakters (CharacterDefs „start_weapon“)
+## geben und beim Spieler anheften. Fallback = Axt (Holzfäller-Defaults).
 func _give_starting_weapon() -> void:
-	_spawn_weapon(AXE_DATA)
+	var def := CharacterDefs.get_def(MetaProgress.selected_character)
+	var weapon_id := StringName(def.get("start_weapon", &"axe_holzfaenger"))
+	var weapon_data := _weapon_data_by_id(weapon_id)
+	_spawn_weapon(weapon_data if weapon_data != null else AXE_DATA)
 
 
 ## Instanziiert eine Waffenszene aus ihrer WeaponData und verknüpft sie.
@@ -434,6 +447,8 @@ func _weapon_scene_for(data: WeaponData) -> PackedScene:
 			return SICKLE_SCENE
 		WeaponData.Type.CHAIN:
 			return THUNDER_SCENE
+		WeaponData.Type.THROWN_AOE:
+			return PHIOLE_SCENE
 		_:
 			return AXE_SCENE
 

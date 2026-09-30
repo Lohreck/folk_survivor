@@ -16,8 +16,9 @@ signal died
 signal hp_changed(current: float, maximum: float)
 signal level_up_ready
 
-## Startcharakter „Der Holzfäller" (Tank, Charaktere-Dokument §2.1):
-## 140 HP und 0.8× Tempo – hohe HP statt Ausweichen.
+## Startcharakter-Defaults „Der Holzfäller“ (Tank, Charaktere-Dokument
+## §2.1): 140 HP und 0.8× Tempo. Ab M3d überschreibt configure_character()
+## die Werte des gewählten Charakters (Quelle: CharacterDefs).
 const CHARACTER_MAX_HP := 140.0
 const CHARACTER_SPEED_MULT := 0.8
 
@@ -33,6 +34,16 @@ var hp := CHARACTER_MAX_HP
 var level := 1
 var magnet_radius := 64.0
 var alive := true
+
+## Charakter-Basiswerte: prozentuale Boni (Leshy-Rinde, Tempo+) rechnen auf
+## dem gewählten Charakter – nicht auf Basis 100 (M2c-Doku).
+var base_max_hp := CHARACTER_MAX_HP
+var base_speed_mult := CHARACTER_SPEED_MULT
+## Aktiver Charakter-Passiv (CharacterDefs „passive“) – gate-t die
+## passiv-spezifischen Verzweigungen: Zähe Haut, Segnende Hand, Kampferfahrung.
+var passive_id: StringName = &"zaehe_haut"
+## Timer für „Segnende Hand“ (Kräuterfrau, Charaktere-Dokument §2.3).
+var _heal_tick := 0.0
 
 ## XP-Schwelle zum nächsten Level (Balancing §7: round(6 × Level^1.5)).
 ## Startwert = Level 1 → 2 = 6 XP.
@@ -60,12 +71,35 @@ func _ready() -> void:
 	_update_hp_bar()
 
 
+## Setzt die Charakter-Stats des gewählten Charakters (CharacterDefs:
+## HP, Tempo, Passiv). Vom Run in main._ready aufgerufen – der Kinder-Ready
+## läuft vor dem Parent-Ready, deshalb werden die Werte hier NACH hp =
+## max_hp komplett neu gesetzt.
+func configure_character(hp_value: float, speed_mult: float, char_passive: StringName) -> void:
+	base_max_hp = hp_value
+	base_speed_mult = speed_mult
+	passive_id = char_passive
+	max_hp = hp_value
+	hp = max_hp
+	speed = BASE_SPEED * speed_mult
+	_update_hp_bar()
+	hp_changed.emit(hp, max_hp)
+
+
 func _physics_process(delta: float) -> void:
 	if not alive:
 		return
 
 	if _contact_timer > 0.0:
 		_contact_timer -= delta
+
+	# „Segnende Hand“ (Kräuterfrau, Charaktere-Dokument §2.3): alle 8 s 1 %
+	# der max. HP – bewusst als diskreter Tick, nicht als Dauer-Regen.
+	if passive_id == &"segende_hand":
+		_heal_tick += delta
+		if _heal_tick >= 8.0:
+			_heal_tick -= 8.0
+			heal(max_hp * 0.01)
 
 	# Bewegung: Joystick (Touch) hat Vorrang vor Tastatur/Stick.
 	var dir := Vector2.ZERO
@@ -105,9 +139,10 @@ func _apply_contact_damage() -> void:
 	for area in _hitbox.get_overlapping_areas():
 		if area is TestEnemy:
 			var dmg: float = area.contact_damage
-			# „Zähe Haut" (Charaktere-Dokument §2.1): 10 % weniger Schaden
-			# von Schwarm-Gegnern (Kikimora-Typ). Fernkämpfer/Boss unberührt.
-			if area.enemy_role == EnemyData.Role.SWARM:
+			# „Zähe Haut“ (Holzfäller, Charaktere-Dokument §2.1): 10 %
+			# weniger Schaden von Schwarm-Gegnern (Kikimora-Typ). Gate über
+			# den aktiven Passiv, damit andere Charaktere unberührt bleiben.
+			if passive_id == &"zaehe_haut" and area.enemy_role == EnemyData.Role.SWARM:
 				dmg *= 0.9
 			take_damage(dmg)
 			return
@@ -167,9 +202,9 @@ func set_max_hp(new_max: float) -> void:
 
 
 ## Wendet den kumulierten HP-Prozent-Bonus eines Passivs auf die
-## Charakter-Basis an (Holzfäller: 140 HP – nicht auf Basis 100).
+## Charakter-Basis an (Holzfäller: 140 HP, Soldat: 100 HP – nicht Basis 100).
 func set_max_hp_percent(pct: float) -> void:
-	set_max_hp(CHARACTER_MAX_HP * (1.0 + pct / 100.0))
+	set_max_hp(base_max_hp * (1.0 + pct / 100.0))
 
 
 ## Heilt den Spieler (Level-Up-Fallback, wenn nichts mehr aufwertbar ist).
@@ -181,9 +216,10 @@ func heal(amount: float) -> void:
 	_update_hp_bar()
 
 
-## Setzt einen multiplikativen Tempo-Bonus (1.0 = Charakter-Basis 0.8×).
+## Setzt einen multiplikativen Tempo-Bonus (1.0 = Charakter-Basis, z. B.
+## Holzfäller 0.8× / Soldat 1.0×).
 func set_speed_multiplier(mult: float) -> void:
-	speed = BASE_SPEED * CHARACTER_SPEED_MULT * mult
+	speed = BASE_SPEED * base_speed_mult * mult
 
 
 ## Zielrichtung für die Waffen (Twin-Stick): != ZERO, solange manuell gezielt

@@ -43,7 +43,7 @@ func _sweep_along(direction: Vector2) -> void:
 			continue
 		var angle_diff := absf(direction.angle_to(to_enemy))
 		if angle_diff <= arc:
-			enemy.take_damage(hit.amount)
+			enemy.take_damage(hit.amount * damage_bonus_vs(enemy))
 			# Blutung: DoT = bleed_pct × Trefferschaden, über 3 s.
 			enemy.apply_bleed(hit.amount * data.bleed_pct, 3.0)
 
@@ -51,5 +51,8 @@ func _sweep_along(direction: Vector2) -> void:
 
 
 func _end_sweep() -> void:
+	# Deferred-Aufruf kann nach Szenenwechsel ohne Baum ankommen (get_tree() null).
+	if not is_inside_tree():
+		return
 	await get_tree().create_timer(0.12).timeout
 	_sweep_visual.visible = false

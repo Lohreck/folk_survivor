@@ -1,12 +1,13 @@
 extends Control
-## Meta-Hauptmenü (M3c, UI-UX §4): Gold-Anzeige, Talentbaum mit Kauf-Buttons
-## und Charakter-Übersicht. Flache Hierarchie: von jeder Unteransicht aus ein
-## Tap zurück (UI-UX §4: Meta-Menü darf keine Spielzeit fressen).
+## Meta-Hauptmenü (M3c/M3d, UI-UX §4): Gold-Anzeige, Talentbaum mit
+## Kauf-Buttons, Charakter-Übersicht und Charakterauswahl. Flache
+## Hierarchie: von jeder Unteransicht aus ein Tap zurück (UI-UX §4).
 ##
 ## Der UI-Baum wird per Code aufgebaut (die Szene hält nur die Wurzel) –
 ## die Menüstruktur bleibt damit an einer Stelle lesbar und headless
-## überprüfbar. „Spielen“ startet direkt den Run; die Charakterauswahl
-## dazwischen kommt mit M3d.
+## überprüfbar. Navigationsbaum (UI-UX §4, Regionsauswahl folgt mit M4):
+##   Hauptmenü → Spielen → Charakterauswahl → Run
+##   Hauptmenü → Talentbaum / Charaktere
 
 const RUN_SCENE_PATH := "res://scenes/main.tscn"
 const VIEW_BG := Color(0.043, 0.055, 0.047)
@@ -16,11 +17,14 @@ var _gold_label: Label
 var _home_view: Control
 var _talent_view: Control
 var _chars_view: Control
+var _select_view: Control
 var _views: Array[Control] = []
 ## Talent-Zeilen: StringName -> {level: Label, cost: Label, buy: Button}
 var _talent_rows := {}
-## Charakter-Statuslabels: StringName -> Label
+## Charakter-Übersicht: StringName -> Label (Status/Bedingung)
 var _char_status := {}
+## Charakterauswahl: StringName -> {status: Label, button: Button}
+var _select_rows := {}
 
 
 func _ready() -> void:
@@ -32,7 +36,9 @@ func _ready() -> void:
 	_build_talent_content(_talent_view)
 	_chars_view = _make_view("CharsView")
 	_build_chars_content(_chars_view)
-	_views = [_home_view, _talent_view, _chars_view]
+	_select_view = _make_view("SelectView")
+	_build_select_content(_select_view)
+	_views = [_home_view, _talent_view, _chars_view, _select_view]
 	for view: Control in _views:
 		add_child(view)
 	MetaProgress.gold_changed.connect(_on_gold_changed)
@@ -79,7 +85,8 @@ func _build_home_content(view: Control) -> void:
 	_gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_gold_label)
 	box.add_child(_make_spacer(16))
-	box.add_child(_make_button("Spielen", _on_play, "BtnPlay"))
+	box.add_child(_make_button("Spielen",
+		func() -> void: _show_view(_select_view), "BtnPlay"))
 	box.add_child(_make_button("Talentbaum",
 		func() -> void: _show_view(_talent_view), "BtnTalents"))
 	box.add_child(_make_button("Charaktere",
@@ -101,6 +108,7 @@ func _make_talent_row(id: StringName) -> Control:
 	row.name = "Row_" + String(id)
 	row.add_theme_constant_override("separation", 24)
 	var info := VBoxContainer.new()
+	info.name = "Info"
 	var name_label := Label.new()
 	name_label.text = MetaProgress.talent_name(id)
 	name_label.add_theme_font_size_override("font_size", 24)
@@ -140,6 +148,7 @@ func _build_chars_content(view: Control) -> void:
 		row.name = "Char_" + String(id)
 		row.add_theme_constant_override("separation", 24)
 		var info := VBoxContainer.new()
+		info.name = "Info"
 		var name_label := Label.new()
 		name_label.text = str(def["name"])
 		name_label.add_theme_font_size_override("font_size", 22)
@@ -161,6 +170,50 @@ func _build_chars_content(view: Control) -> void:
 	box.add_child(_make_spacer(8))
 	box.add_child(_make_button("Zurück",
 		func() -> void: _show_view(_home_view), "BtnBack"))
+
+
+func _build_select_content(view: Control) -> void:
+	var box: VBoxContainer = view.get_node("Box")
+	box.add_child(_make_heading("Charakterauswahl"))
+	for def: Dictionary in CharacterDefs.CHARACTERS:
+		box.add_child(_make_select_row(def))
+	box.add_child(_make_spacer(8))
+	box.add_child(_make_button("Run starten →", _on_start_run, "BtnStart"))
+	box.add_child(_make_button("Zurück",
+		func() -> void: _show_view(_home_view), "BtnBack"))
+
+
+func _make_select_row(def: Dictionary) -> Control:
+	var id: StringName = def["id"]
+	var row := HBoxContainer.new()
+	row.name = "Row_" + String(id)
+	row.add_theme_constant_override("separation", 20)
+	var info := VBoxContainer.new()
+	info.name = "Info"
+	var name_label := Label.new()
+	name_label.text = str(def["name"])
+	name_label.add_theme_font_size_override("font_size", 22)
+	info.add_child(name_label)
+	var stats := Label.new()
+	stats.name = "StatsLabel"
+	stats.text = CharacterDefs.stats_line(id)
+	stats.add_theme_font_size_override("font_size", 14)
+	stats.add_theme_color_override("font_color", Color(0.65, 0.65, 0.62))
+	info.add_child(stats)
+	row.add_child(info)
+	var status := Label.new()
+	status.name = "StatusLabel"
+	status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	status.add_theme_font_size_override("font_size", 17)
+	row.add_child(status)
+	var action := Button.new()
+	action.name = "ActionBtn"
+	action.custom_minimum_size = Vector2(170, 52)
+	action.pressed.connect(_on_char_action.bind(id))
+	row.add_child(action)
+	_select_rows[id] = {"status": status, "button": action}
+	return row
 
 
 func _make_heading(text: String) -> Label:
@@ -198,6 +251,8 @@ func _show_view(view: Control) -> void:
 		_refresh_talents()
 	elif view == _chars_view:
 		_refresh_chars()
+	elif view == _select_view:
+		_refresh_select()
 
 
 func _refresh_gold() -> void:
@@ -206,8 +261,9 @@ func _refresh_gold() -> void:
 
 func _on_gold_changed(total: int) -> void:
 	_gold_label.text = "Gold: %d" % total
-	# Kaufbarkeit der Talente hängt am Gold – Zeilen neu bewerten.
+	# Kaufbarkeit hängt am Gold – Talent- und Auswahlfzeilen neu bewerten.
 	_refresh_talents()
+	_refresh_select()
 
 
 func _refresh_talents() -> void:
@@ -234,17 +290,64 @@ func _refresh_chars() -> void:
 		var char_id := StringName(str(id))
 		_evaluate_progress_unlock(char_id)
 		var status: Label = _char_status[char_id]
-		if MetaProgress.is_character_unlocked(char_id):
+		var def := CharacterDefs.get_def(char_id)
+		if not MetaProgress.is_character_unlocked(char_id):
+			status.text = str(def.get("hint", ""))
+			status.add_theme_color_override("font_color", Color(0.78, 0.6, 0.55))
+		elif not bool(def.get("playable", false)):
+			# Freigespielt, aber Kit kommt erst mit M4 („alle 8 final“).
+			status.text = "Kit folgt (M4)"
+			status.add_theme_color_override("font_color", Color(0.6, 0.66, 0.78))
+		else:
 			status.text = "Frei"
 			status.add_theme_color_override("font_color", Color(0.55, 0.8, 0.5))
+
+
+func _refresh_select() -> void:
+	# Auswahl validieren (z. B. nach Save-Wechsel): sonst Start-Charakter.
+	if not MetaProgress.select_character(MetaProgress.selected_character):
+		MetaProgress.select_character(&"holzaeller")
+	for id: Variant in _select_rows:
+		var char_id := StringName(str(id))
+		var def := CharacterDefs.get_def(char_id)
+		var row: Dictionary = _select_rows[char_id]
+		var status := row["status"] as Label
+		var button := row["button"] as Button
+		var playable := bool(def.get("playable", false))
+		var unlocked := MetaProgress.is_character_unlocked(char_id)
+		var selected := MetaProgress.selected_character == char_id
+		if not playable:
+			# Kit folgt mit M4 – Vorschau mit Freischalt-Bedingung (UI-UX §4).
+			status.text = str(def.get("hint", ""))
+			status.add_theme_color_override("font_color",
+				Color(0.55, 0.58, 0.62) if unlocked else Color(0.78, 0.6, 0.55))
+			button.text = "Folgt M4"
+			button.disabled = true
+		elif selected:
+			status.text = "✓ gewählt"
+			status.add_theme_color_override("font_color", Color(0.55, 0.8, 0.5))
+			button.text = "Gewählt"
+			button.disabled = true
+		elif unlocked:
+			status.text = "Bereit"
+			status.add_theme_color_override("font_color", Color(0.55, 0.8, 0.5))
+			button.text = "Wählen"
+			button.disabled = false
 		else:
-			status.text = str(CharacterDefs.get_def(char_id).get("hint", ""))
+			var cost := int(def.get("unlock_gold", 0))
+			status.text = str(def.get("hint", ""))
 			status.add_theme_color_override("font_color", Color(0.78, 0.6, 0.55))
+			if cost > 0:
+				button.text = "%d Gold" % cost
+				button.disabled = MetaProgress.gold < cost
+			else:
+				button.text = str(def.get("hint", ""))
+				button.disabled = true
 
 
 ## Auswertbare Fortschritts-Bedingungen (Charaktere-Dokument §1): beim
-## ersten Erfüllen wird die Freischaltung persistiert. Gold-Käufe (Kräuter-
-## frau, Jäger) und spätere Regionen kommen mit der Charakterauswahl (M3d).
+## ersten Erfüllen wird die Freischaltung persistiert. Gold-Käufe laufen
+## über _on_char_action; Regionen-Bedingungen kommen mit M4.
 func _evaluate_progress_unlock(id: StringName) -> void:
 	var met := false
 	match id:
@@ -258,6 +361,10 @@ func _evaluate_progress_unlock(id: StringName) -> void:
 		MetaProgress.unlock_character(id)
 
 
+# ---------------------------------------------------------------------------
+# Aktionen
+# ---------------------------------------------------------------------------
+
 func _on_talent_buy(id: StringName) -> void:
 	MetaProgress.buy_talent(id)
 	# Auch bei Fehlschlag (zu wenig Gold) neu bewerten – buy_talent emittet
@@ -265,7 +372,25 @@ func _on_talent_buy(id: StringName) -> void:
 	_refresh_talents()
 
 
-func _on_play() -> void:
+## Wählen bzw. Gold-Freischalten in der Charakterauswahl (Wirtschaft §4).
+## spend_gold() prüft den Bestand – erst bei Erfolg wird freigeschaltet,
+## gewählt und der Kauf über gold_changed im Menü sichtbar.
+func _on_char_action(id: StringName) -> void:
+	var def := CharacterDefs.get_def(id)
+	if not bool(def.get("playable", false)):
+		return  # Button ist disabled – rein defensive.
+	if MetaProgress.is_character_unlocked(id):
+		MetaProgress.select_character(id)
+	else:
+		var cost := int(def.get("unlock_gold", 0))
+		if cost > 0 and MetaProgress.spend_gold(cost):
+			MetaProgress.unlock_character(id)
+			MetaProgress.select_character(id)
+	_refresh_select()
+	_refresh_chars()
+
+
+func _on_start_run() -> void:
 	var err := get_tree().change_scene_to_file(RUN_SCENE_PATH)
 	if err != OK:
 		push_warning("MainMenu: Run-Szene nicht ladbar (Fehler %d)" % err)

@@ -217,8 +217,14 @@ func take_damage(amount: float) -> void:
 ## data     = EnemyData-Resource (Basiswerte, Region-1/Minute-1-normalisiert)
 ## hp_mult  = Region-Multiplikator × Zeit-Multiplikator (Balancing §5/§4)
 ## dmg_mult = dito für den Schaden
+## Elite-Markierung (Balancing §6) – u. a. Basis für „Kampferfahrung“
+## (Soldat: +5 % Schaden gegen Elite/Boss, Charaktere-Dokument §2.2).
+var is_elite := false
+
+
 ## elite    = true → ×10 HP (Balancing §6: Elite-TTK/Trash-TTK ≈ 10)
 func setup_from_data(data: EnemyData, hp_mult: float, dmg_mult: float, elite: bool) -> void:
+	is_elite = elite
 	max_hp = data.base_hp * hp_mult * (10.0 if elite else 1.0)
 	contact_damage = data.base_damage * dmg_mult
 	enemy_role = data.role

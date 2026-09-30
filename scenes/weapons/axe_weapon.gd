@@ -54,7 +54,7 @@ func _sweep_along(direction: Vector2) -> void:
 				hit_enemy = true
 
 		if hit_enemy:
-			enemy.take_damage(hit.amount)
+			enemy.take_damage(hit.amount * damage_bonus_vs(enemy))
 			if evolved:
 				# Uralteichen-Axt: Knockback + Verwurzelt.
 				enemy.apply_knockback(global_position, 220.0)
@@ -69,5 +69,8 @@ func _on_evolved() -> void:
 
 
 func _end_sweep() -> void:
+	# Deferred-Aufruf kann nach Szenenwechsel ohne Baum ankommen (get_tree() null).
+	if not is_inside_tree():
+		return
 	await get_tree().create_timer(0.12).timeout
 	_sweep_visual.visible = false

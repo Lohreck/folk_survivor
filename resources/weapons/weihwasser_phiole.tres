@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/weapons/weapon_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"weihwasser_phiole"
+display_name = "Weihwasser-Phiole"
+weapon_type = 3
+base_damage = 15.0
+cooldown = 0.95
+attack_range = 220.0
+half_arc = 0.7
+aoe_radius = 70.0
+max_level = 8

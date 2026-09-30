@@ -57,6 +57,20 @@ func roll_damage() -> Dictionary:
 	return {"amount": amount, "is_crit": is_crit}
 
 
+## „Kampferfahrung“ (Soldat, Charaktere-Dokument §2.2): +5 % Schaden gegen
+## Elite- und Boss-Gegner. Aufrufseite: enemy.take_damage(hit.amount *
+## damage_bonus_vs(enemy)) – der Bonus muss pro Ziel rollen, weil Flächen-
+## Treffer (Axt-Sweep) gemischte Gruppen treffen.
+func damage_bonus_vs(target: Node2D) -> float:
+	if owner_node == null or not is_instance_valid(owner_node):
+		return 1.0
+	if owner_node.get("passive_id") != &"kampferfahrung":
+		return 1.0
+	if (target is TestEnemy and target.is_elite) or target is LeshyBoss:
+		return 1.05
+	return 1.0
+
+
 ## Steigert das Level (bis max_level). Vom Level-Up-Screen aufgerufen.
 func level_up() -> void:
 	if level < data.max_level:
