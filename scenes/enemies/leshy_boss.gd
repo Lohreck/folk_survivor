@@ -57,7 +57,7 @@ func _change_terrain() -> void:
 	var hazard: TerrainHazard = HAZARD_SCENE.instantiate()
 	get_parent().add_child(hazard)
 	hazard.global_position = pos
-	hazard.begin(TERRAIN_WARN, TERRAIN_TICK_DAMAGE)
+	hazard.begin(TERRAIN_WARN, TERRAIN_TICK_DAMAGE, &"leshy_baumformation")
 	_active_hazard = hazard
 
 

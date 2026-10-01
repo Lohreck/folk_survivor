@@ -52,6 +52,13 @@ var xp_to_next := 6.0
 
 var _contact_timer := 0.0
 
+## Letzte Schadensquelle und deren Trefferstärke (Telemetrie §4 death_cause:
+## „Gegnertyp/Schaden“ für die One-Shot-Erkennung). Wird von take_damage()
+## gefüllt, wenn die Aufrufseite eine Quelle übergibt – Kontakttreffer,
+## Fernkampf-Projektil und Terrain-Hazard tun das.
+var last_damage_source: StringName = &""
+var last_damage_amount := 0.0
+
 ## Aktuelle Zielrichtung (Twin-Stick). != ZERO, solange der Ziel-Stick
 ## gehalten wird; sonst ZERO = Auto-Modus (Waffen zielen selbst).
 var _aim_vector := Vector2.ZERO
@@ -144,13 +151,19 @@ func _apply_contact_damage() -> void:
 			# den aktiven Passiv, damit andere Charaktere unberührt bleiben.
 			if passive_id == &"zaehe_haut" and area.enemy_role == EnemyData.Role.SWARM:
 				dmg *= 0.9
-			take_damage(dmg)
+			take_damage(dmg, area.source_id)
 			return
 
 
-func take_damage(amount: float) -> void:
+## source = Telemetrie-Kennung der Schadensquelle (EnemyData.id bzw. die
+## Ability-Id „leshy_baumformation“). Leer = unbekannt – dann bleibt die
+## bisherige Quelle stehen, nur der Schaden wird aktualisiert.
+func take_damage(amount: float, source: StringName = &"") -> void:
 	if not alive or _contact_timer > 0.0:
 		return
+	if source != &"":
+		last_damage_source = source
+	last_damage_amount = amount
 	hp -= amount
 	if hp < 0.0:
 		hp = 0.0

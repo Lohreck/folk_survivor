@@ -220,11 +220,16 @@ func take_damage(amount: float) -> void:
 ## Elite-Markierung (Balancing §6) – u. a. Basis für „Kampferfahrung“
 ## (Soldat: +5 % Schaden gegen Elite/Boss, Charaktere-Dokument §2.2).
 var is_elite := false
+## Quell-Kennung aus der EnemyData (Telemetrie §4 death_cause: „Gegnertyp/
+## Schaden“). Wird beim Spawn gesetzt und mit jeder Schadensquelle an den
+## Spieler durchgereicht (Kontakt, Fernkampf-Projektil).
+var source_id: StringName = &""
 
 
 ## elite    = true → ×10 HP (Balancing §6: Elite-TTK/Trash-TTK ≈ 10)
 func setup_from_data(data: EnemyData, hp_mult: float, dmg_mult: float, elite: bool) -> void:
 	is_elite = elite
+	source_id = data.id
 	max_hp = data.base_hp * hp_mult * (10.0 if elite else 1.0)
 	contact_damage = data.base_damage * dmg_mult
 	enemy_role = data.role

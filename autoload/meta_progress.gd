@@ -124,6 +124,14 @@ func buy_talent(id: StringName) -> bool:
 	talents[id] = talent_level(id) + 1
 	_save()
 	gold_changed.emit(gold)
+	# Telemetrie §4 (talent_purchased): Meta-Pacing-Analyse – Kostenkurve
+	# und verbleibendes Gold je Kauf.
+	Telemetry.track(&"talent_purchased", {
+		"talent": id,
+		"level": talents[id],
+		"cost": cost,
+		"gold_left": gold,
+	})
 	return true
 
 

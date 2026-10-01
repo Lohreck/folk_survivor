@@ -93,6 +93,14 @@ var _pause_button: Button
 ## Hauptboss (M2c-3): spawnt bei Minute 10 (Spawning stoppt -> Boss-Slot).
 var _boss: LeshyBoss = null
 var _boss_spawned := false
+## Spawn-Zeitpunkt für die Boss-TTK (Telemetrie §4: boss_defeated „Zeit bis Kill“).
+var _boss_spawn_time := 0.0
+
+## Telemetrie (§4): ob für das aktuell offene Level-Up gerollt wurde
+## (level_up-Event „Reroll ja/nein“). Wird beim Öffnen zurückgesetzt.
+var _level_up_rerolled := false
+## Nächte Sekunde für den 1-Hz-Gegner-Sample (enemy_count_sample, §4).
+var _next_enemy_sample := 1.0
 
 
 func _ready() -> void:
@@ -169,6 +177,14 @@ func _ready() -> void:
 	_fit_fullscreen_sprite(fog, true)
 	_update_hud()
 
+	# Run-Start (Telemetrie §4): Region, Charakter, Startwaffe, Reroll-Budget.
+	Telemetry.track(&"run_start", {
+		"region": REGION_SCENE.id,
+		"character": MetaProgress.selected_character,
+		"weapon": StringName(char_def.get("start_weapon", &"axe_holzfaenger")),
+		"rerolls": rerolls_left,
+	})
+
 
 func _process(delta: float) -> void:
 	if not running:
@@ -208,6 +224,14 @@ func _process(delta: float) -> void:
 	# jetzt kommt der Hauptboss. Genau einmal pro Run.
 	if not _boss_spawned and run_minute >= 10.0:
 		_spawn_boss()
+
+	# Telemetrie (§4): aktive Gegner 1×/s sampeln (Performance + Spawn-Tuning).
+	if run_time >= _next_enemy_sample:
+		Telemetry.track(&"enemy_count_sample", {
+			"n": _count_active_enemies(),
+			"minute": run_minute,
+		})
+		_next_enemy_sample += 1.0
 
 	# FPS-Anzeige alle halbe Sekunde aktualisieren (reicht für Greybox).
 	if Engine.get_process_frames() % 30 == 0:
@@ -273,16 +297,17 @@ func _spawn_enemy(data: EnemyData, elite: bool) -> void:
 	enemy.on_died = _on_enemy_died
 	if is_ranged or is_flyer:
 		# Fernkampf-Callable injizieren: Projektil aus dem Pool + skalierte
-		# Schadenswerte (der Gegner übergibt nur Position/Richtung/Tempo).
+		# Schadenswerte (der Gegner übergibt Position/Richtung/Tempo plus
+		# seine Quell-Kennung für die Telemetrie).
 		enemy.fire_projectile = _fire_enemy_projectile
 
 
 ## Feindliches Projektil abfeuern (Callable-Signatur des RangedEnemy).
-func _fire_enemy_projectile(pos: Vector2, dir: Vector2, speed: float, damage: float) -> void:
+func _fire_enemy_projectile(pos: Vector2, dir: Vector2, speed: float, damage: float, source: StringName) -> void:
 	var proj: Area2D = EnemyPoolManager.get_instance(POOL_PROJECTILES)
 	if proj == null:
 		return  # Pool erschöpft → Schuss fällt aus (kein Crash)
-	proj.call("launch", pos, dir, speed, damage)
+	proj.call("launch", pos, dir, speed, damage, source)
 
 
 ## Spawnt den Hauptboss (M2c-3): Minute 10, nach dem Spawn-Stopp (Boss-Slot).
@@ -290,6 +315,7 @@ func _fire_enemy_projectile(pos: Vector2, dir: Vector2, speed: float, damage: fl
 ## ist in den Basiswerten bereits eingerechnet -> Multiplikatoren 1.0.
 func _spawn_boss() -> void:
 	_boss_spawned = true
+	_boss_spawn_time = run_time
 	var boss: LeshyBoss = BOSS_SCENE.instantiate()
 	enemy_container.add_child(boss)
 	boss.setup_from_data(BOSS_DATA, 1.0, 1.0, false)
@@ -297,6 +323,7 @@ func _spawn_boss() -> void:
 	boss.target = player
 	boss.on_died = _on_boss_died
 	_boss = boss
+	Telemetry.track(&"boss_spawn", {"minute": run_minute, "time_s": run_time})
 
 
 ## Boss-Sieg: Run erfolgreich beendet (Meilenstein-2-Kriterium: Boss-Sieg
@@ -305,8 +332,11 @@ func _on_boss_died(boss: LeshyBoss) -> void:
 	kills += 1
 	running = false
 	run_gold += boss.gold_value
-	var earned := _credit_run_gold(REGION_SCENE.boss_gold_bonus)
+	# Telemetrie §4: TTK über die Zeit zwischen boss_spawn und -defeated.
+	Telemetry.track(&"boss_defeated", {"ttk_s": run_time - _boss_spawn_time, "minute": run_minute})
+	var earned := _credit_run_gold(REGION_SCENE.boss_gold_bonus, &"boss")
 	MetaProgress.mark_boss_defeated(&"leshy")
+	_track_run_end(&"victory", earned)
 	death_screen.show_victory(_format_time(run_time), kills, player.level, earned)
 	get_tree().paused = true
 
@@ -314,10 +344,39 @@ func _on_boss_died(boss: LeshyBoss) -> void:
 ## Run-Gold kreditieren (Wirtschaft §2.1): Kills × Gold-Rate-Talent plus
 ## flacher Bonus (Boss-Sieg §2.2 bzw. Überlebenszeit-Bonus §2.3 bei Tod vor
 ## Run-Ende). Gibt den gerundeten Gesamtwert für den Run-End-Screen zurück.
-func _credit_run_gold(flat_bonus: int) -> int:
+## source kennzeichnet die Bonus-Herkunft für das gold_earned-Event (§4).
+func _credit_run_gold(flat_bonus: int, source: StringName) -> int:
 	var earned := roundi(run_gold * MetaProgress.gold_rate_multiplier()) + flat_bonus
 	MetaProgress.add_gold(earned)
+	# Run-End-Auszahlung: enthält die mit dem Talent skalierten Kills-Gold
+	# (credited_total), deshalb als eigene Quelle markiert – Summen über
+	# alle gold_earned-Events nicht blind addieren.
+	Telemetry.track(&"gold_earned", {
+		"source": source,
+		"credited_total": earned,
+		"flat_bonus": flat_bonus,
+		"kill_gold_raw": run_gold,
+	})
 	return earned
+
+
+## Run-Ende protokollieren (Telemetrie §4: Region, Charakter, Dauer,
+## Todesminute, Sieg/Niederlage). Die Aufrufer stellen sicher, dass
+## `running` bereits false ist – so bleibt jedes Run-Ende eindeutig.
+func _track_run_end(outcome: StringName, earned: int) -> void:
+	var props := {
+		"outcome": String(outcome),
+		"duration_s": run_time,
+		"kills": kills,
+		"level": player.level,
+		"region": REGION_SCENE.id,
+		"character": MetaProgress.selected_character,
+		"gold": earned,
+		"gold_raw": run_gold,
+	}
+	if outcome == &"death":
+		props["death_minute"] = run_minute
+	Telemetry.track(&"run_end", props)
 
 
 ## Zählt aktive Gegner (für den SpawnDirector-Deckel).
@@ -356,6 +415,13 @@ func _random_offscreen_position() -> Vector2:
 func _on_enemy_died(enemy: TestEnemy) -> void:
 	kills += 1
 	run_gold += enemy.gold_value
+	# Telemetrie §4 (gold_earned, Quelle Kills): fraktionaler Gold-Wert des
+	# Gegentyps – Rohsumme steht zusätzlich in run_end (gold_raw).
+	Telemetry.track(&"gold_earned", {
+		"source": &"kills",
+		"amount": enemy.gold_value,
+		"enemy": enemy.source_id,
+	})
 	var gem := EnemyPoolManager.get_instance(POOL_GEMS)
 	if gem != null:
 		gem.global_position = enemy.global_position
@@ -381,10 +447,19 @@ func _show_next_level_up() -> void:
 		player.heal(30.0)
 		return
 	options.shuffle()
+	_level_up_rerolled = false
 	level_up_screen.open(options.slice(0, 3), rerolls_left)
 
 
 func _on_upgrade_chosen(id: StringName) -> void:
+	# Telemetrie §4 (level_up): gewählte Karte + ob vor der Wahl gerollt wurde.
+	Telemetry.track(&"level_up", {
+		"card": id,
+		"rerolled": _level_up_rerolled,
+		"rerolls_left": rerolls_left,
+		"minute": run_minute,
+		"level": player.level,
+	})
 	_apply_upgrade_choice(id)
 	# Nächstes aufgeschobenes Level-Up direkt nachreichen.
 	_show_next_level_up()
@@ -405,6 +480,7 @@ func _on_reroll_requested() -> void:
 		return
 	options.shuffle()
 	level_up_screen.refill(options.slice(0, 3), rerolls_left)
+	_level_up_rerolled = true
 
 
 ## Wendet die gewählte Level-Up-Option an (M2b: Waffen/Passivs/Evolution).
@@ -502,15 +578,31 @@ func _evolve_axe() -> void:
 		return
 	inventory.evolve(AXE_DATA, URALTEICHEN_DATA)
 	(axe_entry.node as WeaponBase).apply_evolution(URALTEICHEN_DATA)
+	# Telemetrie §4: Erreichbarkeit der Evolutionen. (double_evolved gibt es
+	# erst mit den Doppel-Evolutionen in M4.)
+	Telemetry.track(&"weapon_evolved", {
+		"weapon": URALTEICHEN_DATA.id,
+		"minute": run_minute,
+		"level": player.level,
+	})
 
 
 func _on_player_died() -> void:
 	running = false
+	# Todesursache (Telemetrie §4: One-Shot-Erkennung) – die letzte Quelle
+	# samt Trefferstärke gegen die max. HP. Chronologisch VOR run_end.
+	Telemetry.track(&"death_cause", {
+		"source": player.last_damage_source,
+		"amount": player.last_damage_amount,
+		"max_hp": player.max_hp,
+		"minute": run_minute,
+	})
 	# Überlebenszeit-Bonus bei Tod vor Run-Ende (Wirtschaft §2.3):
 	# (überlebte Minuten / 12) × Voll-Run-Gold-Wert × 0.5.
 	var minutes := run_time / 60.0
 	var survival := roundi(minutes / 12.0 * float(REGION_SCENE.estimated_full_run_gold) * 0.5)
-	var earned := _credit_run_gold(survival)
+	var earned := _credit_run_gold(survival, &"survival")
+	_track_run_end(&"death", earned)
 	death_screen.show_results(_format_time(run_time), kills, player.level, earned)
 	# Baum pausieren: friert Gegner, Spawns, Waffe und Timer ein.
 	get_tree().paused = true
@@ -599,6 +691,10 @@ func _on_pause_resume() -> void:
 
 
 func _restart() -> void:
+	# Laufenden Run als Abbruch protokollieren (Telemetrie §4 run_end) –
+	# nach Tod/Sieg ist running bereits false, der Guard verhindert Doppel.
+	if running:
+		_track_run_end(&"abort", 0)
 	get_tree().paused = false
 	if get_tree().current_scene != null:
 		get_tree().reload_current_scene()
@@ -610,6 +706,9 @@ func _restart() -> void:
 ## Zurück ins Meta-Menü (UI-UX §5: „Zum Menü“). Erst pausieren aufheben,
 ## sonst läuft der Menü-Baum im pausierten Zustand weiter.
 func _goto_menu() -> void:
+	# Mittendrin verlassen = Abbruch (running greift auch aus der Pause heraus).
+	if running:
+		_track_run_end(&"abort", 0)
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
 

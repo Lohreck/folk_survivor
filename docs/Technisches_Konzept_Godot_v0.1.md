@@ -62,6 +62,7 @@ Bei bis zu 85 gleichzeitigen Gegnern (siehe Balancing-Dokument) ist **kein** `in
 |---|---|
 | `GameState` | Aktueller Run-Zustand (Zeit, gewählter Charakter, aktive Waffen/Passivs, Gold im Run) |
 | `MetaProgress` | Persistenter Fortschritt (Talentbaum-Stufen, freigeschaltete Charaktere/Regionen, Gold/Bernstein-Bestand) |
+| `Telemetry` | Append-only JSONL-Events je Spielstart unter `user://telemetry/` (Playtesting-Dokument §4) – wird VOR `MetaProgress` registriert, weil dieses `talent_purchased` trackt |
 | `EnemyPoolManager` | Object-Pooling-Logik (siehe Punkt 3) |
 | `SpawnDirector` | Steuert Spawn-Kurven pro Minute/Region (liest Werte aus den Balancing-Resources) |
 | `AudioManager` | Zentrale Musik-/SFX-Steuerung, inkl. Lautstärke-Settings |

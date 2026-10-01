@@ -24,6 +24,8 @@ const TREE_TEXTURE := preload("res://assets/sprites/tree.png")
 
 ## Schaden pro Tick (wird vom Leshy gesetzt: Terrain-DPS × Tick-Intervall).
 var _damage_per_tick := 8.0
+## Quell-Kennung für die Telemetrie (death_cause §4), via begin() gesetzt.
+var hazard_source: StringName = &""
 
 var _warn_timer := 0.0
 var _active := false
@@ -59,13 +61,16 @@ func _physics_process(delta: float) -> void:
 		_tick_timer = TICK_INTERVAL
 		for area in get_overlapping_areas():
 			if area.has_method("take_damage"):
-				area.take_damage(_damage_per_tick)
+				area.take_damage(_damage_per_tick, hazard_source)
 
 
 ## Startet den Hazard an seiner Position (nach add_child aufrufen).
-func begin(warn_time: float, dmg_per_tick: float) -> void:
+## source = Telemetrie-Kennung (death_cause §4) – derzeit Leshys
+## Baumformation (leshy_baumformation).
+func begin(warn_time: float, dmg_per_tick: float, source: StringName) -> void:
 	_warn_timer = warn_time
 	_damage_per_tick = dmg_per_tick
+	hazard_source = source
 
 
 func _activate() -> void:

@@ -57,6 +57,23 @@ Hinweis: **Grobgerüst.** Dieses Dokument führt alle Tuning-Punkte aus den übr
 | `enemy_count_sample` (1×/s, aktive Gegner) | Performance + Spawn-Tuning |
 | `death_cause` (Gegnertyp/Schaden) | One-Shot-Erkennung |
 
+**Implementierungsstand (M3f):** Alle Events laufen über den Autoload `Telemetry`
+(eine JSON-Zeile pro Event, `user://telemetry/session_<id>.jsonl`, fail-silent).
+Details:
+
+- `run_end.outcome` = `death` | `victory` | `abort` (Menü/Neustart vor Run-Ende);
+  `death_minute` nur bei `death`. Zusatzfelder: `kills`, `level`, `gold` (kreditiert),
+  `gold_raw` (fraktionale Kill-Summe).
+- `gold_earned.source` = `kills` (pro Kill, `amount` = `EnemyData.gold_value`,
+  `enemy` = Gegner-ID) | `boss` | `survival` (beide als `credited_total` = die
+  ausgezahlte Run-Summe inkl. Talent-Multiplikator, nicht blind summieren).
+  Truhen fehlen weiterhin (Wirtschaft §6, offener Punkt).
+- `death_cause.source` = EnemyData-ID bei Kontakt/Projektil bzw.
+  `leshy_baumformation` (Terrain-Hazard); `amount` = letzter Treffer,
+  `max_hp` erlaubt die One-Shot-Prüfung `amount >= max_hp`.
+- `perun_spawn`/`perun_defeated` und `double_evolved` sind noch NICHT verdrahtet –
+  Perun-Boss und Doppel-Evolutionen existieren erst später (M4).
+
 ---
 
 ## 5. Tuning-Register

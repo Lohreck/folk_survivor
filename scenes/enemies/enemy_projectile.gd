@@ -13,6 +13,9 @@ var speed := 320.0
 var damage := 9.0
 ## Flugrichtung (normalisiert).
 var direction := Vector2.RIGHT
+## Schadensquelle für die Telemetrie (death_cause §4): EnemyData.id des
+## Schützen, wird beim Abschuss übergeben.
+var source: StringName = &""
 
 ## Nach dieser Zeit in Sekunden verschwindet das Projektil (Lebenszeit-Schutz).
 const MAX_LIFETIME := 4.0
@@ -36,11 +39,12 @@ func _physics_process(delta: float) -> void:
 
 
 ## Wird vom Schützen (RangedEnemy via Callable) gesetzt.
-func launch(pos: Vector2, dir: Vector2, proj_speed: float, proj_damage: float) -> void:
+func launch(pos: Vector2, dir: Vector2, proj_speed: float, proj_damage: float, proj_source: StringName) -> void:
 	global_position = pos
 	direction = dir.normalized()
 	speed = proj_speed
 	damage = proj_damage
+	source = proj_source
 	_lifetime = 0.0
 	rotation = direction.angle()
 	visible = true
@@ -67,5 +71,5 @@ func _on_area_entered(area: Area2D) -> void:
 	# Player hat add_xp-Methode NICHT, aber take_damage – Erkennung über Methode,
 	# da die Player-Klasse bewusst kein class_name hat (Godot-Reservierung).
 	if area.has_method("take_damage"):
-		area.take_damage(damage)
+		area.take_damage(damage, source)
 		EnemyPoolManager.return_instance(self)

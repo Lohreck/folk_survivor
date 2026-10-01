@@ -50,5 +50,5 @@ func _think_extra(delta: float, target_dist: float, dir: Vector2) -> void:
 		return
 	var cooldown := float(get_meta("attack_cooldown", 2.2))
 	var dmg := float(get_meta("projectile_damage", contact_damage))
-	fire_projectile.call(global_position, dir, PROJECTILE_SPEED, dmg)
+	fire_projectile.call(global_position, dir, PROJECTILE_SPEED, dmg, source_id)
 	_attack_timer = cooldown
