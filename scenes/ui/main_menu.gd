@@ -58,14 +58,21 @@ func _build_background() -> void:
 	add_child(bg)
 
 
+## Ein Ansichts-Block: zentrierter VBox-„Block" fester Spaltenbreite.
+## Playtest 2026-10-02 („Shop unübersichtlich, vieles verschoben"):
+##   – Breite 640 → 720: Platz für die Talent-Beschreibung mit Umbruch,
+##     damit die Lv.-/Kosten-/Kaufen-Spalten zeilenübergreifend fluchten.
+##   – separation 16 → 10 und kompaktere Spacer: die 8-Zeilen-Ansichten
+##     (Charaktere/Auswahl) passen sicher in den 720-px-Höhenviewport,
+##     statt oben/unten beschnitten zu werden.
 func _make_view(view_name: String) -> Control:
 	var view := CenterContainer.new()
 	view.name = view_name
 	view.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var box := VBoxContainer.new()
 	box.name = "Box"
-	box.add_theme_constant_override("separation", 16)
-	box.custom_minimum_size = Vector2(640, 0)
+	box.add_theme_constant_override("separation", 10)
+	box.custom_minimum_size = Vector2(720, 0)
 	view.add_child(box)
 	return view
 
@@ -98,7 +105,7 @@ func _build_talent_content(view: Control) -> void:
 	box.add_child(_make_heading("Talentbaum"))
 	for id: Variant in MetaProgress.talent_ids():
 		box.add_child(_make_talent_row(StringName(str(id))))
-	box.add_child(_make_spacer(8))
+	box.add_child(_make_spacer(4))
 	box.add_child(_make_button("Zurück",
 		func() -> void: _show_view(_home_view), "BtnBack"))
 
@@ -109,6 +116,10 @@ func _make_talent_row(id: StringName) -> Control:
 	row.add_theme_constant_override("separation", 24)
 	var info := VBoxContainer.new()
 	info.name = "Info"
+	# Playtest 2026-10-02: Info füllt die Restbreite der Zeile – Level-,
+	# Kosten- und Kauf-Spalte stehen damit in allen Zeilen identisch
+	# (vorher sprangen sie je nach Beschreibungslänge).
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var name_label := Label.new()
 	name_label.text = MetaProgress.talent_name(id)
 	name_label.add_theme_font_size_override("font_size", 24)
@@ -117,6 +128,7 @@ func _make_talent_row(id: StringName) -> Control:
 	desc.text = MetaProgress.talent_description(id)
 	desc.add_theme_font_size_override("font_size", 15)
 	desc.add_theme_color_override("font_color", Color(0.7, 0.7, 0.68))
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info.add_child(desc)
 	row.add_child(info)
 	var level := Label.new()
@@ -133,6 +145,9 @@ func _make_talent_row(id: StringName) -> Control:
 	buy.name = "BuyButton"
 	buy.text = "Kaufen"
 	buy.custom_minimum_size = Vector2(140, 52)
+	# Einheitliche Button-Höhe, auch wenn die Info-Zeile durch umbrechende
+	# Beschreibungen höher ausfällt (Playtest 2026-10-02).
+	buy.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	buy.pressed.connect(_on_talent_buy.bind(id))
 	row.add_child(buy)
 	_talent_rows[id] = {"level": level, "cost": cost, "buy": buy}
@@ -167,7 +182,7 @@ func _build_chars_content(view: Control) -> void:
 		row.add_child(status)
 		_char_status[id] = status
 		box.add_child(row)
-	box.add_child(_make_spacer(8))
+	box.add_child(_make_spacer(4))
 	box.add_child(_make_button("Zurück",
 		func() -> void: _show_view(_home_view), "BtnBack"))
 
@@ -177,10 +192,21 @@ func _build_select_content(view: Control) -> void:
 	box.add_child(_make_heading("Charakterauswahl"))
 	for def: Dictionary in CharacterDefs.CHARACTERS:
 		box.add_child(_make_select_row(def))
-	box.add_child(_make_spacer(8))
-	box.add_child(_make_button("Run starten →", _on_start_run, "BtnStart"))
-	box.add_child(_make_button("Zurück",
-		func() -> void: _show_view(_home_view), "BtnBack"))
+	box.add_child(_make_spacer(4))
+	# Playtest 2026-10-02: Hauptaktion + Zurück nebeneinander (volle Breite)
+	# – zwei volle Button-Zeilen drückten die Ansicht über den 720-px-Viewport
+	# und „Zurück" wurde unten abgeschnitten.
+	var bottom := HBoxContainer.new()
+	bottom.name = "BottomRow"
+	bottom.add_theme_constant_override("separation", 16)
+	var start := _make_button("Run starten →", _on_start_run, "BtnStart")
+	start.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bottom.add_child(start)
+	var back := _make_button("Zurück",
+		func() -> void: _show_view(_home_view), "BtnBack")
+	back.custom_minimum_size = Vector2(220, 58)
+	bottom.add_child(back)
+	box.add_child(bottom)
 
 
 func _make_select_row(def: Dictionary) -> Control:
