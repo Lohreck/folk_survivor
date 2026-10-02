@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/weapons/weapon_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"loderndes_weihwasser"
+display_name = "Loderndes Weihwasser"
+weapon_type = 3
+scene = null
+base_damage = 15.0
+cooldown = 0.95
+attack_range = 220.0
+half_arc = 0.7
+aoe_radius = 70.0
+chain_count = 0
+bleed_pct = 0.0
+burn_duration = 4.0
+burn_dps_factor = 0.25
+bonus_tags = PackedStringArray("wasser", "geist")
+bonus_mult = 2.0
+max_level = 8
+evolution_id = &""
+required_passive_id = &""

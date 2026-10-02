@@ -26,6 +26,9 @@ enum Role { SWARM, RANGED, FLYER, ELITE, MINIBOSS, BOSS }
 @export var lifesteal: float = 0.0
 @export var attack_range: float = 0.0      # > 0 = Fernkämpfer
 @export var attack_cooldown: float = 0.0
+## Gegner-Tags für Waffen-Boni (Waffen-Dok §2.2 Hausgeist-Typ =
+## Domovoi/Aitvaras/Kaukas, §2.3 Wasser-/Geist-Gegner) – M4d.
+@export var tags: PackedStringArray
 @export var projectile_scene: PackedScene
 @export var signature_sfx: AudioStream
 

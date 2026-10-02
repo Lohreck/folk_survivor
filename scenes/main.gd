@@ -7,7 +7,9 @@ extends Node2D
 ## (Lv. 1–8, DPS ×1.30/Lv., Balancing §8).
 ## Passivs: Leshy-Rinde, Perun-Amulett, Domovoi-Glöckchen, Aitvaras-Feder,
 ## Rusalka-Träna (Stat-Boni, auch ohne Waffe nutzbar).
-## Erste Evolution: Axt Lv. 8 + Leshy-Rinde Lv. 5 → Uralteichen-Axt.
+## Evolutionen (M4d): alle 5 Kombinationen generisch über die Ziel-Id der
+## Evolutions-Karte (Uralteichen-Axt, Segenshufeisen, Todesschnitt,
+## Peruns Zorn, Loderndes Weihwasser) – siehe _evolve_weapon().
 
 const ENEMY_SCENE := preload("res://scenes/enemies/test_enemy.tscn")
 const RANGED_ENEMY_SCENE := preload("res://scenes/enemies/ranged_enemy.tscn")
@@ -31,6 +33,16 @@ const HUFEN_DATA := preload("res://resources/weapons/eisernes_hufeisen.tres")
 const GLOCK_DATA := preload("res://resources/weapons/domovoi_gloeckchen.tres")
 const FEDER_DATA := preload("res://resources/weapons/aitvaras_feder.tres")
 const TRAENE_DATA := preload("res://resources/weapons/rusalka_traene.tres")
+const TODSCHNITT_DATA := preload("res://resources/weapons/todesschnitt.tres")
+const PERUNS_ZORN_DATA := preload("res://resources/weapons/peruns_zorn.tres")
+const LODERNDES_DATA := preload("res://resources/weapons/loderndes_weihwasser.tres")
+const SEGENSCHUFEISEN_DATA := preload("res://resources/weapons/segenshufeisen.tres")
+## Alle Evolutionswaffen – nur über die goldene Evolutions-Karte erreichbar,
+## nie als „neue Waffe" im Level-Up-Pool (M4d).
+const EVOLUTION_TARGETS: Array = [
+	URALTEICHEN_DATA, TODSCHNITT_DATA, PERUNS_ZORN_DATA,
+	LODERNDES_DATA, SEGENSCHUFEISEN_DATA,
+]
 const BOSS_SCENE := preload("res://scenes/enemies/leshy_boss.tscn")
 const BOSS_DATA := preload("res://resources/enemies/leshy.tres")
 const ARENA_SIZE := Vector2(4096, 4096)
@@ -98,6 +110,9 @@ var all_passives: Array = []
 var _aura_slow_pct := 0.0
 var _aura_radius := 0.0
 var _aura_visual: Polygon2D
+## evolution_id → Evolutions-WeaponData (M4d): Quelle für Namen und
+## Anwendung der goldenen Evolutions-Karten.
+var evolutions_by_id: Dictionary = {}
 ## Offene Level-Ups, falls mehrere gleichzeitig ausgelöst werden (z. B. wenn ein
 ## Gem mit großem Wert mehrere Stufen auf einmal füllt). Ohne Queue würde der
 ## zweite open()-Aufruf die Auswahl des ersten überschreiben.
@@ -179,6 +194,10 @@ func _ready() -> void:
 	# Waffen-Daten-Pools aufbauen (für Level-Up-Optionen) und Startwaffe setzen.
 	all_weapons = [AXE_DATA, SICKLE_DATA, THUNDER_DATA, PHIOLE_DATA, HUFEN_DATA]
 	all_passives = [LESHY_DATA, PERUN_DATA, GLOCK_DATA, FEDER_DATA, TRAENE_DATA]
+	# Evolutions-Map: evolution_id → Ziel-Daten (M4d). Namen und Anwendung
+	# der goldenen Karten kommen nur aus dieser Quelle.
+	for evo_data: WeaponData in EVOLUTION_TARGETS:
+		evolutions_by_id[evo_data.id] = evo_data
 	_give_starting_weapon()
 
 	# Verkabelung.
@@ -499,7 +518,7 @@ func _show_next_level_up() -> void:
 		return
 	_pending_level_ups -= 1
 	# Level-Up-Optionen dynamisch aus dem Run-Inventar aufbauen (M2b).
-	var options := inventory.build_upgrade_options(all_weapons, all_passives)
+	var options := inventory.build_upgrade_options(all_weapons, all_passives, evolutions_by_id)
 	if options.is_empty():
 		# Nichts mehr aufzuwerten – Heilung als Fallback (Genre-üblich).
 		player.heal(30.0)
@@ -531,7 +550,7 @@ func _on_reroll_requested() -> void:
 	if rerolls_left <= 0:
 		return
 	rerolls_left -= 1
-	var options := inventory.build_upgrade_options(all_weapons, all_passives)
+	var options := inventory.build_upgrade_options(all_weapons, all_passives, evolutions_by_id)
 	if options.is_empty():
 		# Kein Pool – die bisherigen Karten behalten (refill würde leeren).
 		rerolls_left += 1
@@ -541,13 +560,13 @@ func _on_reroll_requested() -> void:
 	_level_up_rerolled = true
 
 
-## Wendet die gewählte Level-Up-Option an (M2b: Waffen/Passivs/Evolution).
+## Wendet die gewählte Level-Up-Option an (M2b: Waffen/Passivs; M4d:
+## Evolutionen über die Ziel-Id der Karte, siehe _evolve_weapon).
 func _apply_upgrade_choice(id: StringName) -> void:
-	match id:
-		&"uralteichen_axt":
-			_evolve_axe()
-		_:
-			_apply_inventory_upgrade(id)
+	if evolutions_by_id.has(id):
+		_evolve_weapon(id)
+	else:
+		_apply_inventory_upgrade(id)
 
 
 func _apply_inventory_upgrade(id: StringName) -> void:
@@ -653,20 +672,25 @@ func _circle_points(radius: float, segments: int = 24) -> PackedVector2Array:
 	return points
 
 
-## Evolution der Axt: Axt Lv. 8 + Leshy-Rinde Lv. 5 → Uralteichen-Axt.
-func _evolve_axe() -> void:
-	var axe_entry := inventory.weapon_by_id(&"axe_holzfaenger")
-	if axe_entry.is_empty():
+## Generische Evolution (M4d): die noch nicht evolvierte Basis-Waffe im
+## Inventar suchen, deren evolution_id == target_id, gegen die Evolutions-
+## Data tauschen. Karte und Telemetrie tragen die Ziel-Id (z. B. &"peruns_zorn").
+func _evolve_weapon(target_id: StringName) -> void:
+	var evolved: WeaponData = evolutions_by_id[target_id]
+	for entry in inventory.weapons:
+		var base: WeaponData = entry.data
+		if entry.evolved or base.evolution_id != target_id:
+			continue
+		inventory.evolve(base, evolved)
+		(entry.node as WeaponBase).apply_evolution(evolved)
+		# Telemetrie §4: Erreichbarkeit der Evolutionen. (double_evolved gibt es
+		# erst mit den Doppel-Evolutionen – Region 4 + Ahnen-Item.)
+		Telemetry.track(&"weapon_evolved", {
+			"weapon": evolved.id,
+			"minute": run_minute,
+			"level": player.level,
+		})
 		return
-	inventory.evolve(AXE_DATA, URALTEICHEN_DATA)
-	(axe_entry.node as WeaponBase).apply_evolution(URALTEICHEN_DATA)
-	# Telemetrie §4: Erreichbarkeit der Evolutionen. (double_evolved gibt es
-	# erst mit den Doppel-Evolutionen in M4.)
-	Telemetry.track(&"weapon_evolved", {
-		"weapon": URALTEICHEN_DATA.id,
-		"minute": run_minute,
-		"level": player.level,
-	})
 
 
 func _on_player_died() -> void:

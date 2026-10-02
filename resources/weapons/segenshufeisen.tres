@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/weapons/weapon_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"segenshufeisen"
+display_name = "Segenshufeisen"
+weapon_type = 4
+scene = null
+base_damage = 14.0
+cooldown = 1.2
+attack_range = 260.0
+half_arc = 0.0
+aoe_radius = 0.0
+chain_count = 0
+bleed_pct = 0.0
+bonus_tags = PackedStringArray("hausgeist")
+bonus_mult = 1.25
+max_level = 8
+pierce = true
+evolution_id = &""
+required_passive_id = &""

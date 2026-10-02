@@ -43,7 +43,10 @@ func passive_total(stat: StringName) -> float:
 
 
 func add_weapon(data: WeaponData, node: Node2D) -> void:
-	weapons.append({"data": data, "level": 1, "node": node, "evolved": false})
+	# base_id = Ursprungswaffe – bleibt nach der Evolution erhalten, damit
+	# die Basiswaffe nicht ein zweites Mal als „neu“ angeboten wird (M4d).
+	weapons.append({"data": data, "level": 1, "node": node, "evolved": false,
+		"base_id": data.id})
 
 
 func add_passive(data: PassiveData) -> void:
@@ -89,29 +92,42 @@ func evolve(data: WeaponData, evolved_data: WeaponData) -> void:
 
 ## Erzeugt die Upgrade-Optionen für den Level-Up-Screen.
 ## Alle Waffen/Passivs mit Level < Max, freie Slots für Neues, Evolution (gold).
+## evolutions: Dictionary evolution_id → Evolutions-WeaponData (M4d). Der
+## Zielname steht in den Daten, und nur als existierend gemeldete Ziele
+## werden angeboten – das verhindert Evolutions-Karten ohne Effekt.
 ## Rückgabe: Array von Dictionaries {kind, id, title, desc, icon_color, is_evolution}
-func build_upgrade_options(all_weapons: Array, all_passives: Array) -> Array:
+func build_upgrade_options(all_weapons: Array, all_passives: Array, evolutions: Dictionary) -> Array:
 	var options: Array = []
 
-	# 1) Evolutionen zuerst (höchste Priorität, goldene Karte).
+	# 1) Evolutionen zuerst (höchste Priorität, goldene Karte). Die Karte
+	#    trägt die EVOLVIERUNGS-ID (Ziel) – eindeutig gegenüber den Level-
+	#    Karten der Basiswaffe, deren id die Basis-Id ist.
 	for entry in weapons:
 		var data: WeaponData = entry.data
-		if can_evolve(data):
+		if evolutions.has(data.evolution_id) and can_evolve(data):
+			var evolved: WeaponData = evolutions[data.evolution_id]
 			options.append({
-				"kind": "evolve", "id": data.id,
-				"title": "EVOLUTION: %s" % _evolved_name(data),
+				"kind": "evolve", "id": data.evolution_id,
+				"title": "EVOLUTION: %s" % evolved.display_name,
 				"desc": "Struktureller Sprung – Waffe wandelt sich",
 				"icon_color": Color(1.0, 0.85, 0.25), "is_evolution": true,
 			})
 
-	# 2) Waffen-Level-Ups.
+	# 2) Waffen-Level-Ups. Ab dem Sprung auf Lv. 6 nennt die Beschreibung
+	#    das noch fehlende Evolutions-Passiv (Waffen-Dokument §1).
 	for entry in weapons:
 		var data: WeaponData = entry.data
 		if entry.level < data.max_level:
+			var desc := "Schaden ×1.3 (Lv. %d → %d)" % [entry.level, entry.level + 1]
+			if evolutions.has(data.evolution_id) and not entry.evolved \
+					and entry.level + 1 >= 6 \
+					and passive_level(data.required_passive_id) < 5:
+				desc += " · ab Lv. %d nur mit %s Lv. 5" % [
+					data.max_level, _passive_name(data.required_passive_id, all_passives)]
 			options.append({
 				"kind": "weapon_up", "id": data.id,
 				"title": "%s +1" % data.display_name,
-				"desc": "Schaden ×1.3 (Lv. %d → %d)" % [entry.level, entry.level + 1],
+				"desc": desc,
 				"icon_color": Color(0.9, 0.3, 0.25), "is_evolution": false,
 			})
 
@@ -126,10 +142,16 @@ func build_upgrade_options(all_weapons: Array, all_passives: Array) -> Array:
 				"icon_color": Color(0.75, 0.4, 0.95), "is_evolution": false,
 			})
 
-	# 4) Neue Waffen, solange Slots frei sind.
+	# 4) Neue Waffen, solange Slots frei sind. Die bereits evolvierte
+	#    Basiswaffe wird NICHT erneut angeboten: entry.data zeigt nach der
+	#    Evolution auf die Ziel-Waffe, weapon_by_id(Basis-Id) wäre sonst
+	#    leer und die Karte würde die Basiswaffe ein zweites Mal erlauben.
 	if weapons.size() < MAX_WEAPON_SLOTS:
+		var evolved_from := {}
+		for entry in weapons:
+			evolved_from[entry["base_id"]] = true
 		for data: WeaponData in all_weapons:
-			if weapon_by_id(data.id).is_empty():
+			if weapon_by_id(data.id).is_empty() and not evolved_from.has(data.id):
 				options.append({
 					"kind": "new_weapon", "id": data.id,
 					"title": "NEU: %s" % data.display_name,
@@ -155,15 +177,10 @@ func build_upgrade_options(all_weapons: Array, all_passives: Array) -> Array:
 	return options
 
 
-func _evolved_name(data: WeaponData) -> String:
-	# Evolution-Name aus der Inventory-Map der Main (Fallback: generisch).
-	match data.evolution_id:
-		&"uralteichen_axt":
-			return "Uralteichen-Axt"
-		&"todesschnitt":
-			return "Todesschnitt"
-		&"peruns_zorn":
-			return "Peruns Zorn"
-		_:
-			return "Evolution"
+## Anzeigename eines Passivs aus dem Pool (für den Evolutions-Hinweis ab Lv. 6).
+func _passive_name(id: StringName, all_passives: Array) -> String:
+	for data: PassiveData in all_passives:
+		if data.id == id:
+			return data.display_name
+	return "Passiv"
 

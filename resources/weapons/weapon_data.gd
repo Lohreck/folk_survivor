@@ -23,6 +23,22 @@ enum Type { MELEE_ARC, BLEED_MELEE, CHAIN, THROWN_AOE, THROWN_RETURN }
 @export var chain_count: int = 0
 ## Blutung: DoT in % des Trefferschadens pro Sekunde (Sichel).
 @export var bleed_pct: float = 0.0
+## Blutungs-Stapel: wie oft der DoT parallel laufen darf (Sichel 1,
+## Todesschnitt 5 – Waffen-Dok §2.4).
+@export var bleed_stacks: int = 1
+## Stun alle N Treffer (Peruns Zorn: jeder 4.) – 0 = kein Stun.
+@export var stun_every: int = 0
+## Stun-Dauer in s (Peruns Zorn: 0.5).
+@export var stun_duration: float = 0.0
+## Brennzone nach dem Flächen-Burst (Loderndes Weihwasser): Dauer in s.
+@export var burn_duration: float = 0.0
+## Brennzone: DPS je Sekunde als Anteil des Initial-Bursts (0.25 = 25 %).
+@export var burn_dps_factor: float = 0.0
+## Extra-Schaden gegen diese Gegner-Tags (Segenshufeisen: hausgeist;
+## Loderndes Weihwasser: wasser/geist – Waffen-Dok §2.2/§2.3).
+@export var bonus_tags: PackedStringArray
+## Multiplikator, wenn eines der bonus_tags passt.
+@export var bonus_mult: float = 1.0
 ## Durchdringung: Wurf stoppt nicht beim ersten Treffer (Segenshufeisen).
 @export var pierce := false
 @export var max_level: int = 8

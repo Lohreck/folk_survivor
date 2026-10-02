@@ -16,6 +16,10 @@ const AIM_CONE := 0.9
 const _BOLT_TIME := 0.14
 const _BOLT_COLOR := Color(1.0, 0.95, 0.45, 0.9)
 
+## Treffer-Zähler für den Stun der Peruns-Zorn-Evolution (jeder 4. Treffer,
+## Waffen-Dok §2.5) – zählt über alle Kettenschläge hinweg.
+var _stun_hit_count := 0
+
 
 func _perform_attack(target: Node2D) -> void:
 	var hit := roll_damage()
@@ -74,6 +78,12 @@ func _chain_damage(current: Node2D, amount: float, chain_left: int, visited: Arr
 		return
 	visited.append(current)
 	current.take_damage(amount * damage_bonus_vs(current))
+	# Peruns Zorn (Waffen-Dok §2.5): alle stun_every Treffer kurz betäuben
+	# (Basis-Donnerkeil hat stun_every = 0 und feuert hier nie).
+	if data.stun_every > 0 and current.has_method("apply_stun"):
+		_stun_hit_count += 1
+		if _stun_hit_count % data.stun_every == 0:
+			current.apply_stun(data.stun_duration)
 	if chain_left <= 0:
 		return
 	# Nächstes Ziel ab der Position des LETZTEN Treffers (Kettenlinie entlang).

@@ -109,7 +109,8 @@ func _check_hits() -> void:
 				> HIT_RADIUS * HIT_RADIUS:
 			continue
 		_visited.append(enemy)
-		enemy.take_damage(_hit_amount * damage_bonus_vs(enemy))
+		# Bonus-Tags (Segenshufeisen: Hausgeist-Typ, Waffen-Dok §2.2).
+		enemy.take_damage(_hit_amount * damage_bonus_vs(enemy) * element_bonus_vs(enemy))
 		if not data.pierce:
 			_state = _State.RETURN
 			return

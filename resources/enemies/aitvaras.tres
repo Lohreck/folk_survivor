@@ -14,6 +14,7 @@ xp_value = 2
 gold_value = 0.10
 spawn_weight = 7.0
 native_region = 1
+tags = PackedStringArray("hausgeist")
 is_flying = true
 has_shield = false
 attack_range = 180.0

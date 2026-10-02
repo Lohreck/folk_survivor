@@ -37,6 +37,9 @@ const _RADIAL_GAIN := 8.0
 ## Gewichtung der Separation in px/s (wird auf diese Länge gedeckelt).
 const _SEPARATION_WEIGHT := 140.0
 
+## Stun-Tönung (Peruns Zorn, Waffen-Dok §2.5): lesbares Status-Feedback.
+const _STUN_COLOR := Color(0.7, 0.85, 1.6)
+
 ## Ziel, das verfolgt wird (der Spieler).
 var target: Node2D
 ## Callback: on_died(enemy) – wird vom Run gesetzt (Drop + Pool-Rückgabe).
@@ -58,15 +61,18 @@ var _wander_offset := 0.0
 var _flash_time := 0.0
 ## Knockback-Impuls (px/s), zerfällt über die Zeit.
 var _knockback := Vector2.ZERO
-## Status-Effekte (M2b): Blutung (Sichel) + Verwurzelt (Uralteichen-Axt).
-var _bleed_dps := 0.0
-var _bleed_time := 0.0
+## Status-Effekte (M2b/M4d): Verwurzelt (Uralteichen-Axt), Aura
+## (Domovoi-Glöckchen), Blutungs-Stapel, Stun (Peruns Zorn).
 var _root_time := 0.0
 ## Aura-Verlangsamung in % (Domovoi-Glöckchen) – pro Frame vom Run gesetzt
 ## und nach der Bewegung sofort wieder verwertet (Frame-Verfall, M4d).
 var _aura_slow_pct := 0.0
-## Lifesteal-Anteil des aktiven Blutungs-Ticks in % (Rusalka-Träna, M4d).
-var _bleed_lifesteal_pct := 0.0
+## Aktive Blutungs-Stapel: [{dps, time, lifesteal}] – Sichel 1 Stapel,
+## Todesschnitt bis 5 (Waffen-Dok §2.4), jeder mit eigenem Timer.
+var _bleed_list: Array = []
+## Stun (Peruns Zorn, Waffen-Dok §2.5): solange > 0 steht der Gegner still
+## und schießt nicht.
+var _stun_time := 0.0
 
 @onready var _visual: Sprite2D = $Body
 
@@ -85,19 +91,28 @@ func _physics_process(delta: float) -> void:
 	# Radius steht; entfällt der Aufruf, verfällt der Effekt automatisch.
 	var aura_slow := _aura_slow_pct
 	_aura_slow_pct = 0.0
-	# Status-Effekte ticken (Blutung = Sichel, Verwurzelt = Uralteichen-Axt).
-	if _bleed_time > 0.0:
-		_bleed_time -= delta
-		var bleed_tick := _bleed_dps * delta
+	# Status-Effekte ticken (Blutung = Sichel/Todesschnitt, Verwurzelt =
+	# Uralteichen-Axt, Stun = Peruns Zorn).
+	if not _bleed_list.is_empty():
 		var lifesteal_target := target
-		take_damage(bleed_tick)
+		var bleed_total := 0.0
+		var heal_total := 0.0
+		for i in range(_bleed_list.size() - 1, -1, -1):
+			var stack: Dictionary = _bleed_list[i]
+			stack["time"] = float(stack["time"]) - delta
+			var tick: float = float(stack["dps"]) * delta
+			bleed_total += tick
+			heal_total += tick * float(stack["lifesteal"]) / 100.0
+			if float(stack["time"]) <= 0.0:
+				_bleed_list.remove_at(i)
+		take_damage(bleed_total)
 		# Rusalka-Träna: Anteil des Blutungsschadens als HP zurück. Der
 		# Zwischenspeicher der Ziel-Referenz schützt vor dem Pool-Rückgabe-
 		# Aufruf innerhalb von take_damage (deactivate() leert target).
-		if _bleed_lifesteal_pct > 0.0 and lifesteal_target != null \
+		if heal_total > 0.0 and lifesteal_target != null \
 				and is_instance_valid(lifesteal_target) \
 				and lifesteal_target.has_method("heal"):
-			lifesteal_target.heal(bleed_tick * _bleed_lifesteal_pct / 100.0)
+			lifesteal_target.heal(heal_total)
 		if not visible:
 			return  # durch Blutung gestorben
 	if _root_time > 0.0:
@@ -106,6 +121,16 @@ func _physics_process(delta: float) -> void:
 		_flash_time -= delta
 		if _flash_time <= 0.0:
 			_visual.modulate = Color.WHITE
+	# Stun (Peruns Zorn): Stillstand, kein Schuss, bis der Timer abläuft –
+	# nach den Status-Ticks, aber vor Bewegung und _think_extra. Der
+	# Weiß-Flash eines Treffers hat Vorrang vor der Stun-Tönung.
+	if _stun_time > 0.0:
+		_stun_time -= delta
+		if _flash_time <= 0.0 and _visual.modulate != _STUN_COLOR:
+			_visual.modulate = _STUN_COLOR
+		return
+	if _visual.modulate == _STUN_COLOR:
+		_visual.modulate = Color.WHITE
 	if target == null:
 		return
 	var to_target := target.global_position - global_position
@@ -193,12 +218,31 @@ func apply_root(duration: float) -> void:
 	_root_time = duration
 
 
-## Blutung (Sichel): DoT über die Dauer. lifesteal_pct = Anteil des
-## Blutungsschadens, den der Spieler als HP zurückbekommt (Rusalka-Träna).
-func apply_bleed(dps: float, duration: float, lifesteal_pct := 0.0) -> void:
-	_bleed_dps = maxf(_bleed_dps, dps)
-	_bleed_time = duration
-	_bleed_lifesteal_pct = maxf(_bleed_lifesteal_pct, lifesteal_pct)
+## Blutung: DoT über die Dauer, bis zu max_stacks parallel (Sichel 1,
+## Todesschnitt 5 – Waffen-Dok §2.4). Bei vollem Limit wird der älteste
+## Stapel aufgefrischt (DPS/Lifesteal maxf – Altverhalten des Einzel-DoT).
+## lifesteal_pct = Anteil des Blutungsschadens, der als HP zurückkommt
+## (Rusalka-Träna, Waffen-Dok §3).
+func apply_bleed(dps: float, duration: float, lifesteal_pct := 0.0, max_stacks := 1) -> void:
+	var cap := maxi(max_stacks, 1)
+	if _bleed_list.size() >= cap:
+		var oldest: Dictionary = _bleed_list[0]
+		oldest["dps"] = maxf(float(oldest["dps"]), dps)
+		oldest["time"] = duration
+		oldest["lifesteal"] = maxf(float(oldest["lifesteal"]), lifesteal_pct)
+		return
+	_bleed_list.append({"dps": dps, "time": duration, "lifesteal": lifesteal_pct})
+
+
+## Stun (Peruns Zorn): Stillstand für die Dauer (Waffen-Dok §2.5).
+func apply_stun(duration: float) -> void:
+	_stun_time = maxf(_stun_time, duration)
+
+
+## Gegner-Tag für Waffen-Bonus-Prüfung (z. B. hausgeist beim Segenshufeisen,
+## wasser/geist beim Lodernden Weihwasser – Waffen-Dok §2.2/§2.3).
+func has_tag(tag: StringName) -> bool:
+	return tag in enemy_tags
 
 
 ## Aura-Verlangsamung (Domovoi-Glöckchen): Prozent, die IN DIESEM Frame
@@ -255,12 +299,16 @@ var is_elite := false
 ## Schaden“). Wird beim Spawn gesetzt und mit jeder Schadensquelle an den
 ## Spieler durchgereicht (Kontakt, Fernkampf-Projektil).
 var source_id: StringName = &""
+## Gegner-Tags aus der EnemyData (Waffen-Boni, Waffen-Dok §2.2/§2.3) –
+## u. a. Basis für element_bonus_vs() der Waffen (M4d).
+var enemy_tags: PackedStringArray
 
 
 ## elite    = true → ×10 HP (Balancing §6: Elite-TTK/Trash-TTK ≈ 10)
 func setup_from_data(data: EnemyData, hp_mult: float, dmg_mult: float, elite: bool) -> void:
 	is_elite = elite
 	source_id = data.id
+	enemy_tags = data.tags
 	max_hp = data.base_hp * hp_mult * (10.0 if elite else 1.0)
 	contact_damage = data.base_damage * dmg_mult
 	enemy_role = data.role
@@ -274,10 +322,10 @@ func setup_from_data(data: EnemyData, hp_mult: float, dmg_mult: float, elite: bo
 ## Pool-Schnittstelle: Instanz in den aktiven Zustand versetzen.
 func activate() -> void:
 	# Status-Effekte der Vor-Nutzung nicht mit in die nächste Runde nehmen
-	# (Pool-Wiederverwendung): Blutung, Verwurzelt, Aura, Rückstoß.
-	_bleed_dps = 0.0
-	_bleed_time = 0.0
-	_bleed_lifesteal_pct = 0.0
+	# (Pool-Wiederverwendung): Blutungs-Stapel, Stun, Verwurzelt, Aura,
+	# Rückstoß.
+	_bleed_list.clear()
+	_stun_time = 0.0
 	_root_time = 0.0
 	_aura_slow_pct = 0.0
 	_knockback = Vector2.ZERO

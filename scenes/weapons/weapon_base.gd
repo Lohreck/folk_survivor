@@ -84,6 +84,20 @@ func area_mult() -> float:
 	return 1.0 + area_damage_pct / 100.0
 
 
+## Element-/Typ-Bonus der Waffe (Segenshufeisen vs. Hausgeist-Typ §2.2,
+## Loderndes Weihwasser vs. Wasser-/Geist-Gegner §2.3). Ohne passende
+## Gegner-Tags = 1.0.
+func element_bonus_vs(target: Node2D) -> float:
+	if data.bonus_tags.is_empty():
+		return 1.0
+	if not target.has_method("has_tag"):
+		return 1.0
+	for tag in data.bonus_tags:
+		if target.has_tag(StringName(tag)):
+			return data.bonus_mult
+	return 1.0
+
+
 ## Steigert das Level (bis max_level). Vom Level-Up-Screen aufgerufen.
 func level_up() -> void:
 	if level < data.max_level:
