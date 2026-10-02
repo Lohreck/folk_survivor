@@ -18,6 +18,14 @@ var cooldown_mult := 1.0
 var crit_chance_pct := 0.0
 ## Wurde diese Waffe evolviert? (ändert strukturell die Wirkweise)
 var evolved := false
+## Flächen-Schadensbonus in % (Aitvaras-Feder, Waffen-Dokument §3).
+var area_damage_pct := 0.0
+## Lifesteal in % pro Blutungs-Tick (Rusalka-Träna, Waffen-Dokument §3).
+var lifesteal_pct := 0.0
+## Container für reine Effekt-Grafik (z. B. Blitz-Segmente) – bewusst NICHT
+## der enemy_container, dessen Kinder-Gleichsetzung „alle Gegner"
+## voraussetzt (Waffen-Schleifen, Passiv-Aura).
+var fx_container: Node2D
 
 ## Referenz auf den Container mit den Gegnern (wird vom Run gesetzt).
 var enemy_container: Node2D
@@ -69,6 +77,11 @@ func damage_bonus_vs(target: Node2D) -> float:
 	if (target is TestEnemy and target.is_elite) or target is LeshyBoss:
 		return 1.05
 	return 1.0
+
+
+## Multiplikator für Flächen-Waffen (Aitvaras-Feder: 1 + %/100).
+func area_mult() -> float:
+	return 1.0 + area_damage_pct / 100.0
 
 
 ## Steigert das Level (bis max_level). Vom Level-Up-Screen aufgerufen.

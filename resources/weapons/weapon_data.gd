@@ -4,7 +4,7 @@ extends Resource
 ## DPS-Kurve über Level: base_damage × 1.30^(level-1) (Balancing §8).
 ## Level 1–8 (max_level), danach nur noch Evolution (Waffen-Dokument §1).
 
-enum Type { MELEE_ARC, BLEED_MELEE, CHAIN, THROWN_AOE }
+enum Type { MELEE_ARC, BLEED_MELEE, CHAIN, THROWN_AOE, THROWN_RETURN }
 
 @export var id: StringName
 @export var display_name: String
@@ -23,6 +23,8 @@ enum Type { MELEE_ARC, BLEED_MELEE, CHAIN, THROWN_AOE }
 @export var chain_count: int = 0
 ## Blutung: DoT in % des Trefferschadens pro Sekunde (Sichel).
 @export var bleed_pct: float = 0.0
+## Durchdringung: Wurf stoppt nicht beim ersten Treffer (Segenshufeisen).
+@export var pierce := false
 @export var max_level: int = 8
 ## Evolutions-Ziel (leer = keine Evolution).
 @export var evolution_id: StringName

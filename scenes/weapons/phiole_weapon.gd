@@ -43,7 +43,8 @@ func _burst_at(center: Vector2) -> void:
 		if not enemy.visible:
 			continue
 		if enemy.global_position.distance_to(center) <= data.aoe_radius:
-			enemy.take_damage(hit.amount * damage_bonus_vs(enemy))
+			# Flächenschaden: Aitvaras-Feder skaliert den Burst (M4d).
+			enemy.take_damage(hit.amount * damage_bonus_vs(enemy) * area_mult())
 	_burst.position = to_local(center)
 	_burst.visible = true
 	_end_burst.call_deferred()

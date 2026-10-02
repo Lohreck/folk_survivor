@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="PassiveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/weapons/passive_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rusalka_traene"
+display_name = "Rusalka-Träna"
+stat = &"lifesteal_pct"
+value_per_level = PackedFloat32Array(2, 4, 6, 8, 10)
+max_level = 5
+evolution_weapon_id = &"todesschnitt"

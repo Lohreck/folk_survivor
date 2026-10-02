@@ -3,8 +3,10 @@ extends Node2D
 ##
 ## Baut auf M2a auf: Ersetzt die M1-Platzhalter-Upgrades durch das echte
 ## Run-Inventar (Waffen-Slots 5, Passiv-Slots 5, Waffen-Dokument §1).
-## Waffen: Axt, Sichel, Donnerkeil (Lv. 1–8, DPS ×1.30/Lv., Balancing §8).
-## Passivs: Leshy-Rinde, Perun-Amulett (Stat-Boni, auch ohne Waffe nutzbar).
+## Waffen: Axt, Sichel, Donnerkeil, Weihwasser-Phiole, Eisernes Hufeisen
+## (Lv. 1–8, DPS ×1.30/Lv., Balancing §8).
+## Passivs: Leshy-Rinde, Perun-Amulett, Domovoi-Glöckchen, Aitvaras-Feder,
+## Rusalka-Träna (Stat-Boni, auch ohne Waffe nutzbar).
 ## Erste Evolution: Axt Lv. 8 + Leshy-Rinde Lv. 5 → Uralteichen-Axt.
 
 const ENEMY_SCENE := preload("res://scenes/enemies/test_enemy.tscn")
@@ -17,6 +19,7 @@ const AXE_SCENE := preload("res://scenes/weapons/axe_weapon.tscn")
 const SICKLE_SCENE := preload("res://scenes/weapons/sickle_weapon.tscn")
 const THUNDER_SCENE := preload("res://scenes/weapons/thunder_weapon.tscn")
 const PHIOLE_SCENE := preload("res://scenes/weapons/phiole_weapon.tscn")
+const HUFEN_SCENE := preload("res://scenes/weapons/hufeisen_weapon.tscn")
 const AXE_DATA := preload("res://resources/weapons/axe_holzfaenger.tres")
 const SICKLE_DATA := preload("res://resources/weapons/sichel.tres")
 const THUNDER_DATA := preload("res://resources/weapons/donnerkeil.tres")
@@ -24,9 +27,16 @@ const PHIOLE_DATA := preload("res://resources/weapons/weihwasser_phiole.tres")
 const LESHY_DATA := preload("res://resources/weapons/leshy_rinde.tres")
 const PERUN_DATA := preload("res://resources/weapons/perun_amulett.tres")
 const URALTEICHEN_DATA := preload("res://resources/weapons/uralteichen_axt.tres")
+const HUFEN_DATA := preload("res://resources/weapons/eisernes_hufeisen.tres")
+const GLOCK_DATA := preload("res://resources/weapons/domovoi_gloeckchen.tres")
+const FEDER_DATA := preload("res://resources/weapons/aitvaras_feder.tres")
+const TRAENE_DATA := preload("res://resources/weapons/rusalka_traene.tres")
 const BOSS_SCENE := preload("res://scenes/enemies/leshy_boss.tscn")
 const BOSS_DATA := preload("res://resources/enemies/leshy.tres")
 const ARENA_SIZE := Vector2(4096, 4096)
+## Aura-Radius des Domovoi-Glöckchens auf Stufe 1 (px) – wächst mit der
+## Level-Stufe bis zur Verdopplung auf Stufe 5 (Waffen-Dokument §3).
+const AURA_RADIUS_BASE := 96.0
 
 const POOL_ENEMIES: StringName = &"enemies"
 const POOL_RANGED: StringName = &"ranged_enemies"
@@ -83,6 +93,11 @@ var inventory := RunInventory.new()
 ## Alle verfügbaren Waffen/Passivs (Daten-Pools für den Level-Up-Screen).
 var all_weapons: Array = []
 var all_passives: Array = []
+## Passiv-Aura (Domovoi-Glöckchen): Radius/Verlangsamung aus dem Inventar,
+## pro Frame auf schwache Gegner im Radius angewendet (Waffen-Dok §3).
+var _aura_slow_pct := 0.0
+var _aura_radius := 0.0
+var _aura_visual: Polygon2D
 ## Offene Level-Ups, falls mehrere gleichzeitig ausgelöst werden (z. B. wenn ein
 ## Gem mit großem Wert mehrere Stufen auf einmal füllt). Ohne Queue würde der
 ## zweite open()-Aufruf die Auswahl des ersten überschreiben.
@@ -145,6 +160,15 @@ func _ready() -> void:
 	# Run-Stats als Meta (für Upgrades, die Waffe/Regen betreffen).
 	player.set_meta("run_stats", {"damage_mult": 1.0, "cooldown_mult": 1.0, "hp_regen": 0.0})
 
+	# Sichtbare Aura des Domovoi-Glöckchens: weicher Ring um den Spieler,
+	# als erstes Child gezeichnet (hinter der Figur), per Code wie die
+	# Pause-UI. Radius/Polygon kommen beim ersten Passiv-Level-Update.
+	_aura_visual = Polygon2D.new()
+	_aura_visual.color = Color(0.55, 0.78, 1.0, 0.10)
+	_aura_visual.visible = false
+	player.add_child(_aura_visual)
+	player.move_child(_aura_visual, 0)
+
 	# Talent „Ahnensegen“ (Wirtschaft §3): +5 Start-HP pro Stufe.
 	var hp_bonus: float = MetaProgress.start_hp_bonus()
 	if hp_bonus > 0.0:
@@ -153,8 +177,8 @@ func _ready() -> void:
 	rerolls_left = MetaProgress.start_rerolls()
 
 	# Waffen-Daten-Pools aufbauen (für Level-Up-Optionen) und Startwaffe setzen.
-	all_weapons = [AXE_DATA, SICKLE_DATA, THUNDER_DATA, PHIOLE_DATA]
-	all_passives = [LESHY_DATA, PERUN_DATA]
+	all_weapons = [AXE_DATA, SICKLE_DATA, THUNDER_DATA, PHIOLE_DATA, HUFEN_DATA]
+	all_passives = [LESHY_DATA, PERUN_DATA, GLOCK_DATA, FEDER_DATA, TRAENE_DATA]
 	_give_starting_weapon()
 
 	# Verkabelung.
@@ -215,6 +239,27 @@ func _process(delta: float) -> void:
 		w.cooldown_mult = stats["cooldown_mult"]
 		# Krit-Chance aus dem Perun-Amulett (Passiv).
 		w.crit_chance_pct = inventory.passive_total(&"crit_chance")
+		# Flächenschaden (Aitvaras-Feder) und Blutungs-Lifesteal (Rusalka-
+		# Träna) – beide kommen als Passiv-Werte auf alle Waffen an.
+		w.area_damage_pct = inventory.passive_total(&"area_damage_pct")
+		w.lifesteal_pct = inventory.passive_total(&"lifesteal_pct")
+
+	# Domovoi-Glöckchen: schwache Gegner (Schwarm-Rolle, keine Elites) im
+	# Radius um den Spieler pro Frame verlangsamen (Waffen-Dokument §3).
+	# Der Effekt verfällt im Gegner nach einem Frame, wenn hier nichts
+	# gesetzt wird – kein Gegenaufruf nötig.
+	if _aura_slow_pct > 0.0 and _aura_radius > 0.0:
+		var aura_radius_sq := _aura_radius * _aura_radius
+		var player_pos := player.global_position
+		for enemy in enemy_container.get_children():
+			if not enemy.visible or not enemy.has_method("apply_aura_slow"):
+				continue
+			if enemy.get("is_elite") == true:
+				continue
+			if enemy.get("enemy_role") != EnemyData.Role.SWARM:
+				continue
+			if enemy.global_position.distance_squared_to(player_pos) <= aura_radius_sq:
+				enemy.apply_aura_slow(_aura_slow_pct)
 
 	# Spawn-Loop via SpawnDirector (Balancing-Formeln, .tres-gesteuert).
 	# Akkumulator-Spawning: fraktionale Rate → ganze Gegner pro Tick.
@@ -536,6 +581,19 @@ func _apply_passive_stats() -> void:
 	var speed_pct := inventory.passive_total(&"move_speed_pct")
 	if speed_pct > 0.0:
 		player.set_speed_multiplier(1.0 + speed_pct / 100.0)
+	# Domovoi-Glöckchen (Passiv-Aura, Waffen-Dokument §3): Radius wächst
+	# über die Level-Stufen bis zur Verdopplung (Lv. 1 → Lv. 5), die
+	# Verlangsamung selbst kommt aus dem Stat-Wert.
+	var glock_level := inventory.passive_level(&"domovoi_gloeckchen")
+	if glock_level > 0:
+		_aura_slow_pct = inventory.passive_total(&"aura_slow_pct")
+		_aura_radius = AURA_RADIUS_BASE * (1.0 + float(glock_level - 1) / 4.0)
+		_aura_visual.polygon = _circle_points(_aura_radius)
+		_aura_visual.visible = true
+	else:
+		_aura_slow_pct = 0.0
+		_aura_radius = 0.0
+		_aura_visual.visible = false
 
 
 ## Startwaffe des gewählten Charakters (CharacterDefs „start_weapon“)
@@ -555,6 +613,7 @@ func _spawn_weapon(data: WeaponData) -> void:
 	node.setup(data)
 	node.owner_node = player
 	node.enemy_container = enemy_container
+	node.fx_container = weapon_container
 	inventory.add_weapon(data, node)
 
 
@@ -566,6 +625,8 @@ func _weapon_scene_for(data: WeaponData) -> PackedScene:
 			return THUNDER_SCENE
 		WeaponData.Type.THROWN_AOE:
 			return PHIOLE_SCENE
+		WeaponData.Type.THROWN_RETURN:
+			return HUFEN_SCENE
 		_:
 			return AXE_SCENE
 
@@ -582,6 +643,14 @@ func _passive_data_by_id(id: StringName) -> PassiveData:
 		if data.id == id:
 			return data
 	return null
+
+
+## Kreis-Polygon für die Aura-Visualisierung (Domovoi-Glöckchen).
+func _circle_points(radius: float, segments: int = 24) -> PackedVector2Array:
+	var points := PackedVector2Array()
+	for i in segments:
+		points.append(Vector2.RIGHT.rotated(TAU * float(i) / float(segments)) * radius)
+	return points
 
 
 ## Evolution der Axt: Axt Lv. 8 + Leshy-Rinde Lv. 5 → Uralteichen-Axt.

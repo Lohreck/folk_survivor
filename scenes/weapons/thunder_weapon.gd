@@ -85,7 +85,9 @@ func _chain_damage(current: Node2D, amount: float, chain_left: int, visited: Arr
 
 ## Sichtbarer Blitz-Segmente (Angriff-Feedback-Prinzip: Angriffe müssen
 ## lesbar sein – Playtest-Feedback M2c: „Angriffe schwer zu erahnen").
-## Die Line2D hängt auf Position (0,0) im EnemyContainer, Punkte sind global.
+## Die Line2D hängt auf Position (0,0) im FX-Container, Punkte sind global –
+## bewusst NICHT der enemy_container, dessen Kinder-Gleichsetzung „alle
+## Gegner" voraussetzt (Waffen-Schleifen, Aura).
 func _draw_bolt(from_pos: Vector2, to_pos: Vector2) -> void:
 	var bolt := Line2D.new()
 	bolt.width = 3.0
@@ -93,7 +95,7 @@ func _draw_bolt(from_pos: Vector2, to_pos: Vector2) -> void:
 	var mid := (from_pos + to_pos) * 0.5 + Vector2(randf_range(-14, 14), randf_range(-14, 14))
 	bolt.points = PackedVector2Array([from_pos, mid, to_pos])
 	bolt.z_index = 50
-	enemy_container.add_child(bolt)
+	(fx_container if fx_container != null else enemy_container).add_child(bolt)
 	_fade_bolt.call_deferred(bolt)
 
 

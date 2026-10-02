@@ -7,7 +7,8 @@ extends Resource
 @export var id: StringName
 @export var display_name: String
 ## Stat-Schlüssel, den der Player/das Inventar interpretiert:
-## "max_hp_pct", "crit_chance", "area_damage_pct", "lifesteal_pct", "move_speed_pct"
+## "max_hp_pct", "crit_chance", "area_damage_pct", "lifesteal_pct",
+## "move_speed_pct", "aura_slow_pct" (Domovoi-Glöckchen, M4d)
 @export var stat: StringName
 ## Werte pro Level in Prozentpunkten, z. B. [5, 10, 15, 20, 25].
 @export var value_per_level: PackedFloat32Array = [5.0, 10.0, 15.0, 20.0, 25.0]

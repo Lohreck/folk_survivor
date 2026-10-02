@@ -44,8 +44,9 @@ func _sweep_along(direction: Vector2) -> void:
 		var angle_diff := absf(direction.angle_to(to_enemy))
 		if angle_diff <= arc:
 			enemy.take_damage(hit.amount * damage_bonus_vs(enemy))
-			# Blutung: DoT = bleed_pct × Trefferschaden, über 3 s.
-			enemy.apply_bleed(hit.amount * data.bleed_pct, 3.0)
+			# Blutung: DoT = bleed_pct × Trefferschaden, über 3 s – mit
+			# Lifesteal-Anteil der Rusalka-Träna pro Blutungs-Tick (M4d).
+			enemy.apply_bleed(hit.amount * data.bleed_pct, 3.0, lifesteal_pct)
 
 	_end_sweep.call_deferred()
 

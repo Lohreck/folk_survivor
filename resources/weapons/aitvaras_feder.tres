@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="PassiveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/weapons/passive_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"aitvaras_feder"
+display_name = "Aitvaras-Feder"
+stat = &"area_damage_pct"
+value_per_level = PackedFloat32Array(5, 10, 15, 20, 25)
+max_level = 5
+evolution_weapon_id = &"loderndes_weihwasser"

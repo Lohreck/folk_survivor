@@ -62,6 +62,11 @@ var _knockback := Vector2.ZERO
 var _bleed_dps := 0.0
 var _bleed_time := 0.0
 var _root_time := 0.0
+## Aura-Verlangsamung in % (Domovoi-Glöckchen) – pro Frame vom Run gesetzt
+## und nach der Bewegung sofort wieder verwertet (Frame-Verfall, M4d).
+var _aura_slow_pct := 0.0
+## Lifesteal-Anteil des aktiven Blutungs-Ticks in % (Rusalka-Träna, M4d).
+var _bleed_lifesteal_pct := 0.0
 
 @onready var _visual: Sprite2D = $Body
 
@@ -75,10 +80,24 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	# Aura-Verlangsamung (Domovoi-Glöckchen) einbeziehen und sofort auf 0
+	# zurücksetzen – der Run setzt sie pro Frame neu, solange der Gegner im
+	# Radius steht; entfällt der Aufruf, verfällt der Effekt automatisch.
+	var aura_slow := _aura_slow_pct
+	_aura_slow_pct = 0.0
 	# Status-Effekte ticken (Blutung = Sichel, Verwurzelt = Uralteichen-Axt).
 	if _bleed_time > 0.0:
 		_bleed_time -= delta
-		take_damage(_bleed_dps * delta)
+		var bleed_tick := _bleed_dps * delta
+		var lifesteal_target := target
+		take_damage(bleed_tick)
+		# Rusalka-Träna: Anteil des Blutungsschadens als HP zurück. Der
+		# Zwischenspeicher der Ziel-Referenz schützt vor dem Pool-Rückgabe-
+		# Aufruf innerhalb von take_damage (deactivate() leert target).
+		if _bleed_lifesteal_pct > 0.0 and lifesteal_target != null \
+				and is_instance_valid(lifesteal_target) \
+				and lifesteal_target.has_method("heal"):
+			lifesteal_target.heal(bleed_tick * _bleed_lifesteal_pct / 100.0)
 		if not visible:
 			return  # durch Blutung gestorben
 	if _root_time > 0.0:
@@ -130,6 +149,9 @@ func _physics_process(delta: float) -> void:
 	# Verwurzelt-Debuff: -30 % Tempo (Uralteichen-Axt-Effekt).
 	if _root_time > 0.0:
 		velocity *= 0.7
+	# Aura-Verlangsamung (Domovoi-Glöckchen): Prozent des Tempos abziehen.
+	if aura_slow > 0.0:
+		velocity *= 1.0 - clampf(aura_slow / 100.0, 0.0, 0.9)
 
 	# Gesamtgeschwindigkeit auf das eigene Tempo deckeln (kein Turbo-Stacking).
 	if velocity.length() > move_speed:
@@ -171,10 +193,19 @@ func apply_root(duration: float) -> void:
 	_root_time = duration
 
 
-## Blutung (Sichel): DoT über die Dauer.
-func apply_bleed(dps: float, duration: float) -> void:
+## Blutung (Sichel): DoT über die Dauer. lifesteal_pct = Anteil des
+## Blutungsschadens, den der Spieler als HP zurückbekommt (Rusalka-Träna).
+func apply_bleed(dps: float, duration: float, lifesteal_pct := 0.0) -> void:
 	_bleed_dps = maxf(_bleed_dps, dps)
 	_bleed_time = duration
+	_bleed_lifesteal_pct = maxf(_bleed_lifesteal_pct, lifesteal_pct)
+
+
+## Aura-Verlangsamung (Domovoi-Glöckchen): Prozent, die IN DIESEM Frame
+## greifen – wird vom Run pro Frame neu gesetzt, solange der Gegner im
+## Radius ist (ohne Gegenaufruf verfällt der Effekt nach einem Frame).
+func apply_aura_slow(pct: float) -> void:
+	_aura_slow_pct = maxf(_aura_slow_pct, pct)
 
 
 ## Separation: nur gegen Gegner derselben und der 8 Nachbar-Gridzellen.
@@ -242,6 +273,14 @@ func setup_from_data(data: EnemyData, hp_mult: float, dmg_mult: float, elite: bo
 
 ## Pool-Schnittstelle: Instanz in den aktiven Zustand versetzen.
 func activate() -> void:
+	# Status-Effekte der Vor-Nutzung nicht mit in die nächste Runde nehmen
+	# (Pool-Wiederverwendung): Blutung, Verwurzelt, Aura, Rückstoß.
+	_bleed_dps = 0.0
+	_bleed_time = 0.0
+	_bleed_lifesteal_pct = 0.0
+	_root_time = 0.0
+	_aura_slow_pct = 0.0
+	_knockback = Vector2.ZERO
 	visual_flash_reset()
 	visible = true
 	set_physics_process(true)
