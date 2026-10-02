@@ -5,8 +5,14 @@ class_name AxeWeapon
 ## Trefferbereich = Front-Kegel (attack_range/half_arc) PLUS Nahbereich-Kreis
 ## (aoe_radius). Der Kreis fängt Kleber ab, die direkt am Spieler haften.
 ##
-## Evolution „Uralteichen-Axt" (Waffen-Dokument §2.1): Radius verdoppelt,
-## Knockback + Verwurzelt-Debuff (-30 % Tempo, 2 s).
+## Evolution „Uralteichen-Axt" (Waffen-Dokument §2.1): Schwungradius wächst
+## auf 260 px, Knockback + Verwurzelt-Debuff (-30 % Tempo, 2 s).
+##
+## Sweep-Polygon der Szene endet bei 130 px (_POLYGON_RANGE) – die
+## Reichweite (Basis 170 px, Evolution 260 px) wird deshalb beim Sweep
+## datengetrieben skaliert (Playtest 2026-10-02: Startwaffe trifft den
+## Fernkämpfer-Orbit bei 125/135 px).
+const _POLYGON_RANGE := 130.0
 
 @onready var _sweep: Node2D = $Sweep
 @onready var _sweep_visual: Polygon2D = $Sweep/SweepVisual
@@ -33,6 +39,11 @@ func _perform_attack_along(aim: Vector2) -> bool:
 func _sweep_along(direction: Vector2) -> void:
 	rotation = direction.angle()
 
+	# Sweep-Visual auf die aktuelle Reichweite bringen (Polygon 130 px);
+	# die Evolution skaliert in _on_evolved ebenso aus data.
+	if not evolved:
+		var visual_scale := data.attack_range / _POLYGON_RANGE
+		_sweep_visual.scale = Vector2(visual_scale, visual_scale)
 	_sweep_visual.visible = true
 	var hit := roll_damage()
 
@@ -64,8 +75,10 @@ func _sweep_along(direction: Vector2) -> void:
 
 
 func _on_evolved() -> void:
-	# Visuelles Update: Sweep-Visual vergrößern (Radius verdoppelt).
-	_sweep_visual.scale = Vector2(2.0, 2.0)
+	# Visuelles Update: Sweep-Visual auf die Evolutions-Reichweite
+	# (260 px = 2.0 × Polygon-Größe 130 px), data ist hier bereits getauscht.
+	var visual_scale := data.attack_range / _POLYGON_RANGE
+	_sweep_visual.scale = Vector2(visual_scale, visual_scale)
 
 
 func _end_sweep() -> void:

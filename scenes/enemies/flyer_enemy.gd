@@ -18,9 +18,10 @@ class_name FlyerEnemy
 const _HOVER_AMPLITUDE := 6.0
 const _HOVER_SPEED := 3.0
 
-## Flieger kreisen weiter außen als Bodenkämpfer, aber noch IN der
-## Schussreichweite (attack_range = 180 aus der EnemyData).
-const _FLY_ORBIT_RADIUS := 150.0
+## Flieger kreisen weiter außen als Bodenkämpfer (125 px), aber noch IN der
+## Schussreichweite (attack_range = 180 aus der EnemyData) und in der
+## Reichweite der Startwaffen (Playtest 2026-10-02: 150 → 135 px).
+const _FLY_ORBIT_RADIUS := 135.0
 ## Rückzugsschwelle niedriger als beim Domovoi: Flieger scheuen den
 ## Nahkontakt weniger (sie sind ohnehin schnell wieder draußen).
 const _FLY_RETREAT_BELOW := 60.0

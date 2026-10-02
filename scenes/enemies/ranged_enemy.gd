@@ -24,7 +24,9 @@ var _attack_timer := 0.0
 func _ready() -> void:
 	super._ready()
 	# Fernkämpfer-Verhalten konfigurieren (Basis-Konstanten überschreiben).
-	preferred_orbit_radius = 150.0
+	# Orbit 125 (Playtest 2026-10-02, vorher 150): Schussdistanz bleibt
+	# erhalten, aber die Startwaffen (Axt-Kegel 170 px) erreichen die Zone.
+	preferred_orbit_radius = 125.0
 	retreat_below = 80.0
 	_attack_timer = randf_range(0.4, 1.2)  # versetzte Schüsse im Schwarm
 

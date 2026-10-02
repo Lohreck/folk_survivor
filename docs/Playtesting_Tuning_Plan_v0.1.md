@@ -91,6 +91,7 @@ Details:
 | Elite-HP | ×10 Standard | Elite-TTK 3–8 s | Elite-TTK | anpassen ±2 |
 | Regionen-Multiplikator | R2 1.5 / R3 2.2 / R4 3.2 (HP) | Winrate-Korridor pro Region | Winrate | Region zu hart → HP-Mult. −10 % |
 | `spawn_weight`-Mix | %-Mix (Balancing §3.3) | Mix wirkt thematisch, keine Monotonie | Kill-Verteilung pro Typ | ein Typ > 50 % → Gewicht senken |
+| Fernkämpfer-Cap | 6 aktiv (Ranged + Flyer, Elites ausgenommen) | keine Ansammlung bei Wellen; Fernkämpfer bleiben beherrschbar | gleichzeitige Fernkämpfer (Beobachtung) | Ansammlung weiter spürbar → 4; Cap nie erreicht → 8 oder entfernen |
 | XP-Kurve | `6 × L^1.5` | Level 20–30 pro Run | erreichtes Level | > 30 → Kurve steiler |
 | Waffen-DPS/Level | ×1.30 | Build-Kurve passt zu Gegner-HP | DPS zu Min. X | TTK driftet → Basis anpassen |
 

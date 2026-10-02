@@ -31,6 +31,11 @@ const ARENA_SIZE := Vector2(4096, 4096)
 const POOL_ENEMIES: StringName = &"enemies"
 const POOL_RANGED: StringName = &"ranged_enemies"
 const POOL_FLYERS: StringName = &"flyer_enemies"
+## Max. gleichzeitige Fernkämpfer (Domovoi + Aitvaras zusammen).
+## Playtest 2026-10-02: „schnell zu viele da" – Cap drosselt die Ansammlung,
+## wenn die Fernkämpfer nicht schnell genug sterben (Tuning-Register §5.1).
+## Elites sind ausgenommen (Einzel-Spawn mit eigenem Budget).
+const RANGED_ACTIVE_CAP := 6
 const POOL_GEMS: StringName = &"xp_gems"
 const POOL_PROJECTILES: StringName = &"enemy_projectiles"
 
@@ -286,6 +291,14 @@ func _spawn_enemy(data: EnemyData, elite: bool) -> void:
 	var pool_id: StringName = POOL_FLYERS if is_flyer else (POOL_RANGED if is_ranged else POOL_ENEMIES)
 	if EnemyPoolManager.count_active(pool_id) >= EnemyPoolManager.HARD_ENEMY_CAP:
 		return
+	# Fernkämpfer-Cap (Playtest 2026-10-02): überschüssige Fernkämpfer-Spawns
+	# entfallen – das Wellen-Budget wird bewusst nicht umverteilt, die Welle
+	# spawnt damit insgesamt weniger, solange das Cap steckt.
+	if not elite and (is_ranged or is_flyer):
+		var ranged_active := EnemyPoolManager.count_active(POOL_RANGED) \
+			+ EnemyPoolManager.count_active(POOL_FLYERS)
+		if ranged_active >= RANGED_ACTIVE_CAP:
+			return
 	var enemy: Area2D = EnemyPoolManager.get_instance(pool_id)
 	if enemy == null:
 		return

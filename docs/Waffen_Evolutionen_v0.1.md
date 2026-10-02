@@ -15,7 +15,7 @@ Jede der 5 aktiven Startwaffen erreicht bei **Level 8** ihre maximale Grundstufe
 
 ### 2.1 Uralteichen-Axt
 **Basis:** Axt des Holzfängers (Lv. 8) + **Leshy-Rinde** (Passiv, Lv. 5)
-**Effekt:** Der Schwungradius verdoppelt sich, jeder Treffer verursacht zusätzlich einen kleinen Rückstoß-Effekt (Knockback), und getroffene Gegner erhalten für 2 Sekunden einen "Verwurzelt"-Debuff (-30% Bewegungsgeschwindigkeit)
+**Effekt:** Der Schwungradius wächst von 170 auf 260 px, jeder Treffer verursacht zusätzlich einen kleinen Rückstoß-Effekt (Knockback), und getroffene Gegner erhalten für 2 Sekunden einen "Verwurzelt"-Debuff (-30% Bewegungsgeschwindigkeit)
 **Thematik:** Die Axt verschmilzt optisch mit Wurzelwerk – passend zu Leshys Waldmagie
 **Spielerischer Nutzen:** Starke Crowd-Control-Waffe gegen Schwärme (Kikimora), gut kombinierbar mit dem Holzfäller-Charakter (Tank-Archetyp)
 

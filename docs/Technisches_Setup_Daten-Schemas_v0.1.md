@@ -84,7 +84,7 @@ Hinweis: Konkretisiert `Technisches_Konzept_Godot_v0.1.md` für den Projektstart
 ### 3.3 Waffen (Auto-Attack, Basiswerte Stufe 1)
 | Waffe | Typ | Schaden | Cooldown | Reichweite | Projektil-Tempo | Besonderheit |
 |---|---|---|---|---|---|---|
-| Axt | Nahkampf-Bogen | 10 | 0.9 s | 130 px Kegel + 80-px-Nahkreis | – | Standard |
+| Axt | Nahkampf-Bogen | 10 | 0.9 s | 170 px Kegel + 80-px-Nahkreis | – | Standard |
 | Sichel | Schneller Nahkampf | 7 | 0.7 s | 95 px | – | Blutung 3 s |
 | Eisernes Hufeisen | Wurf/Bumerang | 14 | 1.2 s | 260 px | 400 px/s | kehrt zurück *(Spezifikation, folgt M4)* |
 | Weihwasser-Phiole | Fläche | 15 | 0.95 s | 220 px Wurfweite, Radius 70 px | – | Burst am Ziel, trifft mehrere |
