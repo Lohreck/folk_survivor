@@ -60,7 +60,7 @@
 │   │  Lv. 3→4  │  │  Lv. NEU  │  │  Lv. 2→3  │  │
 │   └──────────┘  └──────────┘  └──────────┘  │
 │                                               │
-│    [Reroll-Karte: nur sichtbar, solange Rerolls übrig]    │
+│    [Reroll-Button, breit: nur sichtbar, solange Rerolls übrig]   │
 └─────────────────────────────────────────────┘
 ```
 
@@ -68,9 +68,9 @@
 - Icon (Waffe/Passiv-Symbol), Name, eine kurze Beschreibung (max. 1 Zeile, z. B. "+15% Schaden"), aktuelle→neue Stufe
 - **Evolution-Hinweis** (siehe Waffen-Evolutionen-Dokument): Falls eine Karte eine Waffe zeigt, die bei dieser Wahl evolvieren würde, erhält die Karte einen dezenten goldenen Rahmen + kleines Sonderzeichen – kein zusätzlicher Text nötig, rein visuelle Auszeichnung
 - Karten sind **groß genug für Daumen-Tap** (keine kleinen Buttons) – gesamte Karte ist die Tap-Fläche, nicht nur ein kleiner Button darauf
-- **Reroll:** Ein separater 4. Slot mit Reroll-Symbol erscheint nur, solange Rerolls übrig sind, und zeigt die Restanzahl. Auch hier ist die gesamte Karte Tap-Fläche. Ein Reroll zieht die 3 Angebotskarten neu; Evolutions-/Fusions-Hinweise (goldener Rahmen) werden dabei neu berechnet. Standard: **3 Gratis-Rerolls pro Run**, kein Zeitdruck (Spiel ist ohnehin pausiert). Über den Talentbaum-Knoten „Wahrsagerei" (siehe Wirtschafts-Dokument) sind bis zu **+2** zusätzliche Start-Rerolls freischaltbar.
+- **Reroll:** Ein **breiter Button unter den drei Karten** (volle Breite des Kartenblocks, eigener großzügiger Tap-/Fokus-Target) erscheint nur, solange Rerolls übrig sind, und zeigt die Restanzahl. Ein Reroll zieht die 3 Angebotskarten neu; Evolutions-/Fusions-Hinweise (goldener Rahmen) werden dabei neu berechnet. Standard: **3 Gratis-Rerolls pro Run**, kein Zeitdruck (Spiel ist ohnehin pausiert). Über den Talentbaum-Knoten „Wahrsagerei" (siehe Wirtschafts-Dokument) sind bis zu **+2** zusätzliche Start-Rerolls freischaltbar. *(Umsetzung nach Playtest-Feedback 2026-10-02: Button unter den Karten statt separater Karte daneben.)*
 
-**Warum 3 Karten als Standard (statt z. B. 4):** Auf kleinen Mobile-Screens im Querformat wird es bei 4 Karten schnell eng für lesbaren Text – 3 Karten sind ein guter Kompromiss zwischen Auswahlvielfalt und Lesbarkeit. Der Reroll belegt **keinen** regulären Karten-Slot, sondern ist ein separater, nur zeitweise sichtbarer 4. Slot.
+**Warum 3 Karten als Standard (statt z. B. 4):** Auf kleinen Mobile-Screens im Querformat wird es bei 4 Karten schnell eng für lesbaren Text – 3 Karten sind ein guter Kompromiss zwischen Auswahlvielfalt und Lesbarkeit. Der Reroll belegt **keinen** regulären Karten-Slot, sondern ist ein separater, nur zeitweise sichtbarer Button unter den Karten.
 
 ---
 
