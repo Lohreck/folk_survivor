@@ -7,7 +7,7 @@
 
 Jede der 5 aktiven Startwaffen erreicht bei **Level 8** ihre maximale Grundstufe. Ist zusätzlich das passende **Passiv-Item ebenfalls auf Maximalstufe** (Level 5, siehe Punkt 3), verschmelzen beide beim nächsten Level-Up-Fenster zu einer **Evolutionswaffe** – einem eigenständigen Waffentyp mit neuem Namen, neuem visuellen Effekt und einer strukturell veränderten Wirkweise (nicht nur höhere Zahlen).
 
-**Warum dieses System:** Zwingt zu bewussten Build-Entscheidungen (welches Passiv nehme ich früh, um später eine bestimmte Evolution zu ermöglichen), ohne dass der Spieler raten muss – Level-Up-Screen kann ab Waffen-Level 6 einen kleinen visuellen Hinweis zeigen ("passendes Passiv fehlt noch"), um Klarheit zu schaffen.
+**Warum dieses System:** Zwingt zu bewussten Build-Entscheidungen (welches Passiv nehme ich früh, um später eine bestimmte Evolution zu ermöglichen), ohne dass der Spieler raten muss – der Level-Up-Screen zeigt ab Waffen-Level 6 in der Karten-Beschreibung einen kleinen Hinweis ("ab Lv. 8 nur mit \<Passiv\> Lv. 5"), um Klarheit zu schaffen *(umgesetzt, M4d)*.
 
 ---
 
@@ -18,30 +18,35 @@ Jede der 5 aktiven Startwaffen erreicht bei **Level 8** ihre maximale Grundstufe
 **Effekt:** Der Schwungradius wächst von 170 auf 260 px, jeder Treffer verursacht zusätzlich einen kleinen Rückstoß-Effekt (Knockback), und getroffene Gegner erhalten für 2 Sekunden einen "Verwurzelt"-Debuff (-30% Bewegungsgeschwindigkeit)
 **Thematik:** Die Axt verschmilzt optisch mit Wurzelwerk – passend zu Leshys Waldmagie
 **Spielerischer Nutzen:** Starke Crowd-Control-Waffe gegen Schwärme (Kikimora), gut kombinierbar mit dem Holzfäller-Charakter (Tank-Archetyp)
+**Status:** umgesetzt (M2b) – Schwungradius 260 px, Knockback, „Verwurzelt"-Debuff 2 s (−30 % Tempo)
 
 ### 2.2 Segenshufeisen
 **Basis:** Eisernes Hufeisen (Lv. 8) + **Domovoi-Glöckchen** (Passiv, Lv. 5)
 **Effekt:** Das Hufeisen durchdringt ab sofort alle getroffenen Gegner (kein Stopp mehr beim ersten Treffer) und kehrt danach weiterhin zum Spieler zurück; zusätzlich erhält jeder getroffene Hausgeist-Typ (Domovoi, Aitvaras, Kaukas) einen kleinen Extra-Schadensbonus
 **Thematik:** Das Hufeisen wird von schützenden Symbolen umgeben – die klassische Volksglauben-Funktion als Geisterschutz wird spielmechanisch greifbar
 **Spielerischer Nutzen:** Gute Wahl gegen Region-3-Gegnertypen (viele Hausgeister), Durchdringung macht es stark bei dicht gedrängten Gruppen
+**Status (M4d):** umgesetzt – `pierce`, Bonus ×1,25 gegen Tag `hausgeist` (derzeit Domovoi, Aitvaras; weitere Hausgeister-Taggs, sobald die Regions-Gegner angelegt sind)
 
 ### 2.3 Loderndes Weihwasser
 **Basis:** Weihwasser-Phiole (Lv. 8) + **Aitvaras-Feder** (Passiv, Lv. 5)
 **Effekt:** Die Flächenwirkung hinterlässt eine brennende Zone, die 4 Sekunden lang anhält und kontinuierlich Schaden verursacht; gegen Geist-/Wasser-Gegner (Vodyanoy, Rusalka, Upyr) wird der Schaden verdoppelt
 **Thematik:** Heiliges Wasser + Feuer des Hausdrachen ergibt eine Art "reinigendes Feuer"
 **Spielerischer Nutzen:** Beste Wahl für Region 2 (viele wassergebundene Gegner), gut kombinierbar mit der Kräuterfrau (die ohnehin auf diese Waffe spezialisiert ist)
+**Status (M4d):** umgesetzt – Brennzone 4 s à 25 % des Burst-Schadens, Bonus-Tags `wasser`/`geist` ×2 (Vodyanoy, Rusalka, Upyr tragen den Tag, sobald ihre Resources in M4a–c angelegt werden)
 
 ### 2.4 Todesschnitt
 **Basis:** Sichel (Lv. 8) + **Rusalka-Träne** (Passiv, Lv. 5)
 **Effekt:** Der Blutungs-Effekt stapelt sich jetzt bis zu 5-fach (statt nur 1x) und pro Blutungs-Tick wird ein kleiner Anteil des verursachten Schadens dem Spieler als HP zurückgegeben (Lifesteal)
 **Thematik:** Die Sichel wird "durchsichtig" wie Wasser dargestellt – die Träne symbolisiert Trauer/Tod, passend zur Sensen-Assoziation
 **Spielerischer Nutzen:** Starke Selbstheilungs-Option für fragile Charaktere (Kräuterfrau, Waisenkind), verwandelt reinen Damage-Dealer in Sustain-Waffe
+**Status (M4d):** umgesetzt – `bleed_stacks` 5 (Basis-Sichel bleibt bei 1), Lifesteal pro Tick = Tick × 10 % (Waffen-Dok §2.4, „5-fach" gilt, nicht die alte „3×"-Notiz)
 
 ### 2.5 Peruns Zorn
 **Basis:** Donnerkeil (Lv. 8) + **Perun-Amulett** (Passiv, Lv. 5)
 **Effekt:** Kettenschaden springt jetzt auf bis zu 6 Gegner (statt 3), und jeder 4. Treffer betäubt den getroffenen Gegner kurzzeitig (0.5s Stun)
 **Thematik:** Volle Entfaltung des Donnergott-Symbols – visuell große Blitzkette über den Bildschirm
 **Spielerischer Nutzen:** Beste Wahl für Region 4 (hohe Elite-Dichte), Stun-Chance hilft besonders gegen Schild-Gegner (Velnias-Diener), die sonst schwer zu unterbrechen sind
+**Status (M4d):** umgesetzt – `chain_count` 6, Stun alle 4 Treffer à 0,5 s (unterbricht Bewegung und Fernkampf, nicht Kontaktschaden)
 
 ---
 
@@ -52,7 +57,7 @@ Jede der 5 aktiven Startwaffen erreicht bei **Level 8** ihre maximale Grundstufe
 | Leshy-Rinde *(neu)* | +5% max. HP | +25% max. HP, +10% Rüstung | Uralteichen-Axt |
 | Domovoi-Glöckchen | Aura verlangsamt schwache Gegner leicht | Aura-Radius verdoppelt, stärkere Verlangsamung | Segenshufeisen |
 | Aitvaras-Feder | +5% Flächenschaden | +25% Flächenschaden, kleiner Feuer-Tick-Effekt | Loderndes Weihwasser |
-| Rusalka-Träne *(neu)* | +2% Lifesteal bei Blutungseffekten | +10% Lifesteal, Blutung stapelt bis 3x | Todesschnitt |
+| Rusalka-Träne *(neu)* | +2 % Lifesteal bei Blutungseffekten | +10 % Lifesteal bei Blutungseffekten | Todesschnitt |
 | Perun-Amulett *(neu)* | +5% kritische Trefferchance | +15% kritische Trefferchance, +10% Fernkampfschaden | Peruns Zorn |
 
 **Hinweis:** Alle Passiv-Items sind auch **ohne** die passende Waffe nutzbar (reine Stat-Boni) – die Evolution ist ein Bonus-Ziel, kein Zwang, um das Item sinnvoll einzusetzen.
@@ -94,8 +99,9 @@ Zwei **fertige Evolutionswaffen** können zu einer ultimativen Waffe verschmelze
 ---
 
 ## 6. Offene Punkte
-- Ob ein Level-Up-Screen-Hinweis (siehe Punkt 1) technisch/visuell sauber umsetzbar ist, ohne den Screen zu überladen
+- ~~Ob ein Level-Up-Screen-Hinweis (siehe Punkt 1) technisch/visuell sauber umsetzbar ist~~ *(erledigt, M4d)*: Der Hinweis sitzt in der Beschreibung der Waffen-Level-Karte ab Lv. 6 – kein zusätzliches UI-Element, Screen bleibt unverändert
 - Feinbalancing der Prozentwerte (Playtesting nötig, besonders bei Todesschnitt-Lifesteal, das sich potenziell zu stark "snowballen" könnte)
+- `wasser`/`geist`-Tags: Der ×2-Bonus der Phiole-Evolution greift erst, wenn die Regions-Gegner (Vodyanoy, Rusalka, Upyr) ihre `tags` tragen – bei der Anlage in M4a–c setzen (Hausgeist-Tags domovoi/aitvaras sind erledigt)
 - Feinbalancing der Doppel-Evolutionen (Drop-Wahrscheinlichkeit des Ahnen-Items, Stärke der Fusionseffekte) – siehe Punkt 5
 
 → Alle tuning-relevanten Punkte mit Startwert, Messgröße und Anpassungsregel: `Playtesting_Tuning_Plan_v0.1.md` (Abschnitt 5.2).

@@ -100,7 +100,11 @@ Details:
 | Parameter | Startwert | Erfolgskriterium | Messgröße | Anpassungsregel |
 |---|---|---|---|---|
 | Charakter-Passivs | 10 / 5 / 1 %·8 s / 20 / 8 / 10 / 20 % | kein Charakter strikt besser | Pickrate + Winrate je Char | Pick+Win > Durchschnitt+15 % → Passiv senken |
-| Todesschnitt-Lifesteal | +10 %, Blutung 3× | kein HP-Snowball | HP-Verlauf über Run | HP dauerhaft > 90 % → Lifesteal senken |
+| Todesschnitt-Lifesteal | +10 %, Blutung 5× | kein HP-Snowball | HP-Verlauf über Run | HP dauerhaft > 90 % → Lifesteal senken |
+| Domovoi-Aura | Radius 96 → 192 px, Slow 10–30 % | Schwärme bremsen ohne Dauer-Slow | Aura-Kills, Slow-Uptime | zu stark → Radius oder Slow −20 % |
+| Weihwasser-Brennzone | 4 s, 25 % des Burst-Schadens | DoT spürbar, kein Dauer-DoT-Screen | Burn-Anteil am Run-Schaden | > 30 % → Faktor auf 0,20 |
+| Bonus-Tags | ×2 (wasser/geist), ×1.25 (hausgeist) | situativer Vorteil, kein Pflicht-Build | Kill-Rate je Regionstyp | trivialisiert → Mult. −0.25 |
+| Peruns-Zorn-Stun | alle 4 Treffer, 0,5 s | Elites unterbrechbar, kein Dauer-Stun | Stun-Uptime Elite | Dauer-Stun-Gefühl → alle 5 Treffer |
 | Reroll-Anzahl | 3 / Run (+2 via Talent) | Build-Konsistenz ohne Determinismus | Reroll-Nutzung, Build-Varianz | > 2,5 verbraucht → 2; < 1 → 4 |
 | Doppel-Evo Ahnen-Item-Drop | ~8 % pro Elite in R4 | in ~1 von 4 R4-Runs erreichbar | `double_evolved`-Rate | zu selten → Drop erhöhen |
 | Doppel-Evo-Stärke | Seelenmahd / Gewitteraxt (Effekt) | stark, aber andere Builds bleiben gültig | Winrate mit/ohne Fusion | trivialisiert → Effekt senken |

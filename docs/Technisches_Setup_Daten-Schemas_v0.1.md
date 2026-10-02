@@ -86,11 +86,11 @@ Hinweis: Konkretisiert `Technisches_Konzept_Godot_v0.1.md` für den Projektstart
 |---|---|---|---|---|---|---|
 | Axt | Nahkampf-Bogen | 10 | 0.9 s | 170 px Kegel + 80-px-Nahkreis | – | Standard |
 | Sichel | Schneller Nahkampf | 7 | 0.7 s | 95 px | – | Blutung 3 s |
-| Eisernes Hufeisen | Wurf/Bumerang | 14 | 1.2 s | 260 px | 400 px/s | kehrt zurück *(Spezifikation, folgt M4)* |
+| Eisernes Hufeisen | Wurf/Bumerang | 14 | 1.2 s | 260 px | 400 px/s | kehrt zurück, stoppt beim ersten Treffer |
 | Weihwasser-Phiole | Fläche | 15 | 0.95 s | 220 px Wurfweite, Radius 70 px | – | Burst am Ziel, trifft mehrere |
 | Donnerkeil | Kette | 9 | 1.4 s | 260 px | – | springt auf 3 Gegner |
 
-→ Werte = Implementierstand (`.tres`, Stand M3d; die Tabelle war seit dem M2-Tuning veraltet). Start-DPS: Axt ≈ 11.1, Sichel ≈ 10, Phiole ≈ 15.8, Donnerkeil ≈ 6.4 pro Ziel. Die Phiole ist damit bewusst der stärkste Flächen-Start (Charaktere §2.3: 14–16). Level-Skalierung: **×1.30 pro Waffe-Level** (Balancing §8).
+→ Werte = Implementierstand (`.tres`, Stand M4d; die Tabelle war seit dem M2-Tuning veraltet). Start-DPS: Axt ≈ 11.1, Sichel ≈ 10, Hufeisen ≈ 11.7, Phiole ≈ 15.8, Donnerkeil ≈ 6.4 pro Ziel. Die Phiole ist damit bewusst der stärkste Flächen-Start (Charaktere §2.3: 14–16). Level-Skalierung: **×1.30 pro Waffe-Level** (Balancing §8).
 
 **Auto-Ziel-Logik:** nächstgelegener Gegner innerhalb der Waffenreichweite; Gleichstand → Winkel zur Blickrichtung.
 
