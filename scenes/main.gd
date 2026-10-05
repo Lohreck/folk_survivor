@@ -61,6 +61,9 @@ const EVOLUTION_TARGETS: Array = [
 ]
 const BOSS_SCENE := preload("res://scenes/enemies/leshy_boss.tscn")
 const BOSS_DATA := preload("res://resources/enemies/leshy.tres")
+## Schlamm-Zone (M4b, Regions-Hazard): Klasse statt Szene – Form und
+## Kollision werden pro Instanz im _ready() aufgebaut.
+const MUD_ZONE_SCRIPT := preload("res://scenes/regions/mud_zone.gd")
 const ARENA_SIZE := Vector2(4096, 4096)
 ## Aura-Radius des Domovoi-Glöckchens auf Stufe 1 (px) – wächst mit der
 ## Level-Stufe bis zur Verdopplung auf Stufe 5 (Waffen-Dokument §3).
@@ -82,6 +85,7 @@ const POOL_PROJECTILES: StringName = &"enemy_projectiles"
 
 @onready var player: Area2D = $World/Player
 @onready var enemy_container: Node2D = $World/EnemyContainer
+@onready var mud_container: Node2D = $World/MudContainer
 @onready var gem_container: Node2D = $World/GemContainer
 @onready var weapon_container: Node2D = $World/WeaponContainer
 @onready var _projectile_container: Node2D = $World/ProjectileContainer
@@ -198,6 +202,8 @@ func _ready() -> void:
 
 	# Arena-Größe als Meta an den Spieler (für Positions-Clamp).
 	player.set_meta("arena_size", ARENA_SIZE)
+	# Schlamm-Zonen (M4b, Regions-Hazard, Regionen-Dok §3).
+	_spawn_mud_zones()
 	# Charakter-Kit anwenden (CharacterDefs: HP, Tempo, Passiv) – der
 	# Spieler-Ready lief vor diesem Aufruf, deshalb explizit konfigurieren.
 	var char_def := CharacterDefs.get_def(MetaProgress.selected_character)
@@ -482,6 +488,37 @@ func _credit_run_gold(flat_bonus: int, source: StringName) -> int:
 		"kill_gold_raw": run_gold,
 	})
 	return earned
+
+
+## Schlamm-Zonen platzieren (M4b, Regionen-Dok §3): Anzahl und Stärke aus
+## den Region-Daten, 500–1500 px um den Startpunkt (Arena-Mitte) mit
+## Mindestabstand zueinander – Wege sollen um die Pfützen führen.
+func _spawn_mud_zones() -> void:
+	if region.mud_zone_count <= 0:
+		return
+	var center := ARENA_SIZE / 2.0
+	var margin := Vector2(160, 160)
+	var placed: Array[Vector2] = []
+	for i in region.mud_zone_count:
+		var pos := center
+		for attempt in 32:
+			var angle := randf() * TAU
+			var dist := randf_range(500.0, 1500.0)
+			pos = (center + Vector2(cos(angle), sin(angle)) * dist) \
+				.clamp(margin, ARENA_SIZE - margin)
+			var clear := true
+			for other in placed:
+				if other.distance_to(pos) < 420.0:
+					clear = false
+					break
+			if clear:
+				break
+		placed.append(pos)
+		var zone: MudZone = MUD_ZONE_SCRIPT.new()
+		zone.shape_seed = 4711 + i
+		zone.slow_pct = region.mud_slow_pct
+		mud_container.add_child(zone)
+		zone.global_position = pos
 
 
 ## Truhe platzieren (Wirtschaft §2.2/§3): zufällige Richtung, 320–480 px

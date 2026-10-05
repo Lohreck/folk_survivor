@@ -22,6 +22,13 @@ extends Resource
 @export var mini_boss_id: StringName                    # leer = kein Mini-Boss (Region 1)
 @export var main_boss_id: StringName
 @export var unlock_condition: StringName
+## Umgebungs-Hazard der Region (M4b): Anzahl statischer Schlamm-Flächen,
+## die die Spielfigur beim Durchqueren verlangsamen (Regionen-Dok §3).
+## Region 1 hat bewusst keine (Tutorial-Region).
+@export var mud_zone_count: int = 0
+## Verlangsamung je Schlamm-Fläche in % (Startwert 30 – Hebel §5,
+## wird beim Sieg über den Mini-Boss reduziert, Regionen-Dok §3).
+@export var mud_slow_pct: float = 30.0
 ## Gold-Bonus beim Boss-Sieg (Wirtschaft §2.2, Region 1 = 80).
 @export var boss_gold_bonus: int = 80
 ## Geschätzter Gold-Wert eines vollständigen 12-Min-Runs inkl. Truhen
