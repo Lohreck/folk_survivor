@@ -67,6 +67,11 @@ var bosses_defeated: Array[StringName] = []
 ## des Saves – die Auswahl gilt pro Sitzung, Start ist immer der Holzfäller;
 ## das Menü setzt den Wert nur über select_character() (freigespielt + spielbar).
 var selected_character: StringName = &"holzaeller"
+## Aktuell ausgewählte Region für den nächsten Run (Regionsauswahl, UI-UX §4,
+## M4a). Wie die Charakter-Auswahl bewusst NICHT Teil des Saves – Sitzungs-
+## lokal; beim Öffnen der Regionsauswahl validiert das Menü den Wert neu
+## (nur freigeschaltete Regionen), im Run-Start greift der Fallback auf 1.
+var selected_region := 1
 
 
 func _ready() -> void:
@@ -205,6 +210,16 @@ func unlock_character(id: StringName) -> bool:
 		return false
 	unlocked_characters.append(id)
 	_save()
+	return true
+
+
+## Wählt die Region für den nächsten Run – nur freigeschaltete Regionen
+## (Regionen-Dok §1: strikt lineare Freischaltung).
+## false = Auswahl ungültig (unbekannt oder noch gesperrt).
+func select_region(region_number: int) -> bool:
+	if not is_region_unlocked(region_number):
+		return false
+	selected_region = region_number
 	return true
 
 

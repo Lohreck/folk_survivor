@@ -5,11 +5,20 @@ extends Control
 ##
 ## Der UI-Baum wird per Code aufgebaut (die Szene hält nur die Wurzel) –
 ## die Menüstruktur bleibt damit an einer Stelle lesbar und headless
-## überprüfbar. Navigationsbaum (UI-UX §4, Regionsauswahl folgt mit M4):
-##   Hauptmenü → Spielen → Charakterauswahl → Run
+## überprüfbar. Navigationsbaum (UI-UX §4, Regionsauswahl seit M4a):
+##   Hauptmenü → Spielen → Charakterauswahl → Regionsauswahl → Run
 ##   Hauptmenü → Talentbaum / Charaktere
 
 const RUN_SCENE_PATH := "res://scenes/main.tscn"
+## Alle Regionen in Freischalt-Reihenfolge (Regionen-Dok §6, M4a) –
+## Namens- und Datenquelle der Regionsauswahl; freigeschaltet werden sie
+## über MetaProgress (lineare Reihenfolge nach Hauptboss-Sieg).
+const REGION_LIST: Array = [
+	preload("res://resources/regions/region_dammerwald.tres"),
+	preload("res://resources/regions/region_sumpfmoor.tres"),
+	preload("res://resources/regions/region_dorf.tres"),
+	preload("res://resources/regions/region_nav_reich.tres"),
+]
 const VIEW_BG := Color(0.043, 0.055, 0.047)
 const ACCENT := Color(0.85, 0.72, 0.38)
 
@@ -18,6 +27,7 @@ var _home_view: Control
 var _talent_view: Control
 var _chars_view: Control
 var _select_view: Control
+var _region_view: Control
 var _views: Array[Control] = []
 ## Talent-Zeilen: StringName -> {level: Label, cost: Label, buy: Button}
 var _talent_rows := {}
@@ -25,6 +35,9 @@ var _talent_rows := {}
 var _char_status := {}
 ## Charakterauswahl: StringName -> {status: Label, button: Button}
 var _select_rows := {}
+## Regionsauswahl: Regionsnummer -> {status: Label, button: Button,
+## region: RegionData}
+var _region_rows := {}
 
 
 func _ready() -> void:
@@ -38,7 +51,9 @@ func _ready() -> void:
 	_build_chars_content(_chars_view)
 	_select_view = _make_view("SelectView")
 	_build_select_content(_select_view)
-	_views = [_home_view, _talent_view, _chars_view, _select_view]
+	_region_view = _make_view("RegionView")
+	_build_region_content(_region_view)
+	_views = [_home_view, _talent_view, _chars_view, _select_view, _region_view]
 	for view: Control in _views:
 		add_child(view)
 	MetaProgress.gold_changed.connect(_on_gold_changed)
@@ -196,10 +211,13 @@ func _build_select_content(view: Control) -> void:
 	# Playtest 2026-10-02: Hauptaktion + Zurück nebeneinander (volle Breite)
 	# – zwei volle Button-Zeilen drückten die Ansicht über den 720-px-Viewport
 	# und „Zurück" wurde unten abgeschnitten.
+	# M4a: Die Hauptaktion führt über die Regionsauswahl (UI-UX §4:
+	# Charakterauswahl → Regionsauswahl → Run startet).
 	var bottom := HBoxContainer.new()
 	bottom.name = "BottomRow"
 	bottom.add_theme_constant_override("separation", 16)
-	var start := _make_button("Run starten →", _on_start_run, "BtnStart")
+	var start := _make_button("Weiter →",
+		func() -> void: _show_view(_region_view), "BtnStart")
 	start.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bottom.add_child(start)
 	var back := _make_button("Zurück",
@@ -242,6 +260,50 @@ func _make_select_row(def: Dictionary) -> Control:
 	return row
 
 
+func _build_region_content(view: Control) -> void:
+	var box: VBoxContainer = view.get_node("Box")
+	box.add_child(_make_heading("Regionsauswahl"))
+	for def: Variant in REGION_LIST:
+		box.add_child(_make_region_row(def as RegionData))
+	box.add_child(_make_spacer(4))
+	# Wie die Charakterauswahl: Hauptaktion + Zurück nebeneinander.
+	var bottom := HBoxContainer.new()
+	bottom.name = "BottomRow"
+	bottom.add_theme_constant_override("separation", 16)
+	var start := _make_button("Run starten →", _on_start_run, "BtnStart")
+	start.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bottom.add_child(start)
+	var back := _make_button("Zurück",
+		func() -> void: _show_view(_select_view), "BtnBack")
+	back.custom_minimum_size = Vector2(220, 58)
+	bottom.add_child(back)
+	box.add_child(bottom)
+
+
+func _make_region_row(region: RegionData) -> Control:
+	var row := HBoxContainer.new()
+	row.name = "Region_" + String(region.id)
+	row.add_theme_constant_override("separation", 20)
+	var name_label := Label.new()
+	name_label.text = region.display_name
+	name_label.add_theme_font_size_override("font_size", 22)
+	row.add_child(name_label)
+	var status := Label.new()
+	status.name = "StatusLabel"
+	status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	status.add_theme_font_size_override("font_size", 17)
+	row.add_child(status)
+	var action := Button.new()
+	action.name = "ActionBtn"
+	action.custom_minimum_size = Vector2(170, 52)
+	action.pressed.connect(_on_region_select.bind(region.region_number))
+	row.add_child(action)
+	_region_rows[region.region_number] = {
+		"status": status, "button": action, "region": region}
+	return row
+
+
 func _make_heading(text: String) -> Label:
 	var heading := Label.new()
 	heading.text = text
@@ -279,6 +341,8 @@ func _show_view(view: Control) -> void:
 		_refresh_chars()
 	elif view == _select_view:
 		_refresh_select()
+	elif view == _region_view:
+		_refresh_regions()
 
 
 func _refresh_gold() -> void:
@@ -371,9 +435,41 @@ func _refresh_select() -> void:
 				button.disabled = true
 
 
+func _refresh_regions() -> void:
+	# Auswahl validieren (z. B. nach Save-Wechsel): sonst Region 1.
+	if not MetaProgress.select_region(MetaProgress.selected_region):
+		MetaProgress.select_region(1)
+	for number: Variant in _region_rows:
+		var region_number := int(number)
+		var row: Dictionary = _region_rows[region_number]
+		var status := row["status"] as Label
+		var button := row["button"] as Button
+		var selected := MetaProgress.selected_region == region_number
+		var unlocked := MetaProgress.is_region_unlocked(region_number)
+		if selected:
+			status.text = "✓ gewählt"
+			status.add_theme_color_override("font_color", Color(0.55, 0.8, 0.5))
+			button.text = "Gewählt"
+			button.disabled = true
+		elif unlocked:
+			status.text = "Bereit"
+			status.add_theme_color_override("font_color", Color(0.55, 0.8, 0.5))
+			button.text = "Wählen"
+			button.disabled = false
+		else:
+			# Lineare Freischaltung (Regionen-Dok §1): die Vorgängerregion
+			# muss zuerst gewonnen werden – Bedingung sichtbar als Text.
+			var previous := REGION_LIST[region_number - 2] as RegionData
+			status.text = "Nach Sieg in „%s"" % previous.display_name
+			status.add_theme_color_override("font_color", Color(0.78, 0.6, 0.55))
+			button.text = "Gesperrt"
+			button.disabled = true
+
+
 ## Auswertbare Fortschritts-Bedingungen (Charaktere-Dokument §1): beim
 ## ersten Erfüllen wird die Freischaltung persistiert. Gold-Käufe laufen
-## über _on_char_action; Regionen-Bedingungen kommen mit M4.
+## über _on_char_action; Region-Bedingungen der späteren Kits (Waisenkind
+## & Co.) kommen mit den Region-Inhalten (M4b/c/g).
 func _evaluate_progress_unlock(id: StringName) -> void:
 	var met := false
 	match id:
@@ -420,3 +516,11 @@ func _on_start_run() -> void:
 	var err := get_tree().change_scene_to_file(RUN_SCENE_PATH)
 	if err != OK:
 		push_warning("MainMenu: Run-Szene nicht ladbar (Fehler %d)" % err)
+
+
+## Region wählen (Regionen-Dok §1, M4a): nur freigeschaltete Regionen –
+## die Buttons gesperrter Zeilen sind disabled, select_region validiert
+## zusätzlich.
+func _on_region_select(region_number: int) -> void:
+	MetaProgress.select_region(region_number)
+	_refresh_regions()

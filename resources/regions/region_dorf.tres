@@ -1,0 +1,52 @@
+[gd_resource type="Resource" script_class="RegionData" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://resources/regions/region_data.gd" id="1"]
+[ext_resource type="Script" path="res://resources/regions/enemy_spawn_entry.gd" id="2"]
+[ext_resource type="Resource" path="res://resources/enemies/kikimora.tres" id="3"]
+[ext_resource type="Resource" path="res://resources/enemies/domovoi.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/enemies/aitvaras.tres" id="5"]
+
+[sub_resource type="Resource" id="Resource_kiki"]
+script = ExtResource("2")
+enemy = ExtResource("3")
+weight = 40.0
+from_minute = 0.0
+is_elite = false
+
+[sub_resource type="Resource" id="Resource_domo"]
+script = ExtResource("2")
+enemy = ExtResource("4")
+weight = 45.0
+from_minute = 0.0
+is_elite = false
+
+[sub_resource type="Resource" id="Resource_ait"]
+script = ExtResource("2")
+enemy = ExtResource("5")
+weight = 15.0
+from_minute = 3.0
+is_elite = false
+
+[sub_resource type="Resource" id="Resource_ait_elite"]
+script = ExtResource("2")
+enemy = ExtResource("5")
+weight = 0.0
+from_minute = 5.0
+is_elite = true
+
+[resource]
+script = ExtResource("1")
+id = &"dorf"
+display_name = "Dorf der Vergessenen"
+region_number = 3
+hp_multiplier = 2.2
+damage_multiplier = 1.55
+spawn_basis = 2.5
+enemy_spawn_table = [SubResource("Resource_kiki"), SubResource("Resource_domo"), SubResource("Resource_ait"), SubResource("Resource_ait_elite")]
+mini_boss_id = &"kaukas"
+main_boss_id = &"aeltester_domovoi"
+boss_gold_bonus = 200
+estimated_full_run_gold = 860
+chest_gold_min = 30
+chest_gold_max = 45
+ground_tint = Color(0.78, 0.74, 0.66, 1)

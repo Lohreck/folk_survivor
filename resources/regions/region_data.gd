@@ -5,7 +5,13 @@ extends Resource
 
 @export var id: StringName
 @export var display_name: String
+## Nummer in der linearen Freischaltung (Regionen-Dok §1, M4a):
+## Region n+1 wird erst nach Sieg über den Hauptboss von Region n frei.
+@export var region_number: int = 1
 @export var map_scene: PackedScene
+## Greybox-Map-Theming (M4a): Tönung der Boden-Kachel – erste visuelle
+## Unterscheidung pro Region, bis echte Map-Szenen mit M4b/c/g folgen.
+@export var ground_tint: Color = Color.WHITE
 ## Grundschwierigkeit der Region (Balancing §5): Region 1 = 1.0 / 1.0.
 @export var hp_multiplier: float = 1.0
 @export var damage_multiplier: float = 1.0

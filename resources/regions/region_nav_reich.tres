@@ -1,0 +1,52 @@
+[gd_resource type="Resource" script_class="RegionData" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://resources/regions/region_data.gd" id="1"]
+[ext_resource type="Script" path="res://resources/regions/enemy_spawn_entry.gd" id="2"]
+[ext_resource type="Resource" path="res://resources/enemies/kikimora.tres" id="3"]
+[ext_resource type="Resource" path="res://resources/enemies/domovoi.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/enemies/aitvaras.tres" id="5"]
+
+[sub_resource type="Resource" id="Resource_kiki"]
+script = ExtResource("2")
+enemy = ExtResource("3")
+weight = 40.0
+from_minute = 0.0
+is_elite = false
+
+[sub_resource type="Resource" id="Resource_domo"]
+script = ExtResource("2")
+enemy = ExtResource("4")
+weight = 30.0
+from_minute = 0.0
+is_elite = false
+
+[sub_resource type="Resource" id="Resource_ait"]
+script = ExtResource("2")
+enemy = ExtResource("5")
+weight = 30.0
+from_minute = 0.0
+is_elite = false
+
+[sub_resource type="Resource" id="Resource_ait_elite"]
+script = ExtResource("2")
+enemy = ExtResource("5")
+weight = 0.0
+from_minute = 5.0
+is_elite = true
+
+[resource]
+script = ExtResource("1")
+id = &"nav_reich"
+display_name = "Reich von Nav'"
+region_number = 4
+hp_multiplier = 3.2
+damage_multiplier = 1.9
+spawn_basis = 3.0
+enemy_spawn_table = [SubResource("Resource_kiki"), SubResource("Resource_domo"), SubResource("Resource_ait"), SubResource("Resource_ait_elite")]
+mini_boss_id = &"marzanna"
+main_boss_id = &"chernobog"
+boss_gold_bonus = 320
+estimated_full_run_gold = 1440
+chest_gold_min = 40
+chest_gold_max = 60
+ground_tint = Color(0.56, 0.5, 0.64, 1)

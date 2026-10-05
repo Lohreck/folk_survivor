@@ -25,7 +25,14 @@ const CHEST_BASE_CHANCE := 0.25
 ## Spawn-Distanz zum Spieler (px) – außerhalb des direkten Gedränges.
 const CHEST_SPAWN_MIN_DIST := 320.0
 const CHEST_SPAWN_MAX_DIST := 480.0
-const REGION_SCENE := preload("res://resources/regions/region_dammerwald.tres")
+## Alle Regionen nach Nummer (Regionen-Dok §6, M4a): Quelle für die
+## Run-Auflösung aus der Regionsauswahl des Menüs (Fallback Region 1).
+const REGION_BY_NUMBER := {
+	1: preload("res://resources/regions/region_dammerwald.tres"),
+	2: preload("res://resources/regions/region_sumpfmoor.tres"),
+	3: preload("res://resources/regions/region_dorf.tres"),
+	4: preload("res://resources/regions/region_nav_reich.tres"),
+}
 const AXE_SCENE := preload("res://scenes/weapons/axe_weapon.tscn")
 const SICKLE_SCENE := preload("res://scenes/weapons/sickle_weapon.tscn")
 const THUNDER_SCENE := preload("res://scenes/weapons/thunder_weapon.tscn")
@@ -102,6 +109,11 @@ var running := true
 ## und in MetaProgress kreditiert (dort Autosave je Mutation).
 var run_gold := 0.0
 
+## Aktive Region dieses Runs (M4a): in _ready() aus der Menü-Auswahl
+## aufgelöst (nur freigeschaltet, sonst Region 1). Grundlage für
+## Gegner-Multiplikatoren, Spawn-Kurve, Gold-Bonusse und Telemetrie.
+var region: RegionData
+
 ## Uniform-Grid für die Gegner-Separation (O(1) pro Gegner, kein N²-Loop).
 const _ENEMY_GRID_CELL := 40
 var _enemy_grid: Dictionary = {}
@@ -150,6 +162,13 @@ var _next_chest_attempt := CHEST_ATTEMPT_INTERVAL
 
 
 func _ready() -> void:
+	# Region des Runs (M4a): Auswahl aus der Regionsauswahl des Menüs,
+	# gegen den Save validiert (sonst Fallback Region 1).
+	var region_number := MetaProgress.selected_region
+	if not MetaProgress.is_region_unlocked(region_number):
+		region_number = 1
+	region = REGION_BY_NUMBER.get(region_number, REGION_BY_NUMBER[1]) as RegionData
+
 	# Kamera auf die Arena begrenzen (statt GDScript-Clamping).
 	camera.limit_left = 0
 	camera.limit_top = 0
@@ -158,6 +177,9 @@ func _ready() -> void:
 
 	# Nahtlose Waldboden-Kachel als Hintergrund (Atmosphäre, Diablo-Look).
 	($World/Background as TextureRect).texture = preload("res://assets/sprites/ground.png")
+	# Regions-Theming (M4a, greybox): Boden-Kachel in der Regionstönung –
+	# erste visuelle Unterscheidung, bis echte Map-Szenen folgen (M4b/c/g).
+	($World/Background as TextureRect).modulate = region.ground_tint
 
 	# Pools vorwärmen. Zuerst eventuelle Reste eines vorherigen Runs freigeben –
 	# beim Szenen-Neustart wird die alte Szene erst verzögert freigegeben, ihre
@@ -221,7 +243,7 @@ func _ready() -> void:
 	_build_pause_ui()
 
 	# SpawnDirector: Region laden und Kurven zurücksetzen.
-	SpawnDirector.set_region(REGION_SCENE)
+	SpawnDirector.set_region(region)
 	SpawnDirector.reset()
 
 	# Start: Spieler in die Arena-Mitte.
@@ -238,7 +260,7 @@ func _ready() -> void:
 
 	# Run-Start (Telemetrie §4): Region, Charakter, Startwaffe, Reroll-Budget.
 	Telemetry.track(&"run_start", {
-		"region": REGION_SCENE.id,
+		"region": region.id,
 		"character": MetaProgress.selected_character,
 		"weapon": StringName(char_def.get("start_weapon", &"axe_holzfaenger")),
 		"rerolls": rerolls_left,
@@ -408,6 +430,9 @@ func _fire_enemy_projectile(pos: Vector2, dir: Vector2, speed: float, damage: fl
 ## Spawnt den Hauptboss (M2c-3): Minute 10, nach dem Spawn-Stopp (Boss-Slot).
 ## Boss-HP ist fix (Balancing §6): KEIN Zeit-Multiplikator, Region-Multiplikator
 ## ist in den Basiswerten bereits eingerechnet -> Multiplikatoren 1.0.
+## Platzhalter (M4a): bis die Regionsbosse existieren (M4b/c/g), kämpft jede
+## Region gegen Leshy – die Auflösung über region.main_boss_id (Baba Yaga,
+## Ältester Domovoi, Chernobog) folgt mit den Boss-Szenen der Regionen.
 func _spawn_boss() -> void:
 	_boss_spawned = true
 	_boss_spawn_time = run_time
@@ -429,8 +454,12 @@ func _on_boss_died(boss: LeshyBoss) -> void:
 	run_gold += boss.gold_value
 	# Telemetrie §4: TTK über die Zeit zwischen boss_spawn und -defeated.
 	Telemetry.track(&"boss_defeated", {"ttk_s": run_time - _boss_spawn_time, "minute": run_minute})
-	var earned := _credit_run_gold(REGION_SCENE.boss_gold_bonus, &"boss")
-	MetaProgress.mark_boss_defeated(&"leshy")
+	var earned := _credit_run_gold(region.boss_gold_bonus, &"boss")
+	MetaProgress.mark_boss_defeated(region.main_boss_id)
+	# Lineare Freischaltung (Regionen-Dok §1, M4a): Sieg über den Hauptboss
+	# von Region n schaltet Region n+1 frei.
+	if region.region_number < REGION_BY_NUMBER.size():
+		MetaProgress.unlock_region(region.region_number + 1)
 	_track_run_end(&"victory", earned)
 	death_screen.show_victory(_format_time(run_time), kills, player.level, earned)
 	get_tree().paused = true
@@ -465,7 +494,7 @@ func _spawn_chest() -> void:
 	var dist := randf_range(CHEST_SPAWN_MIN_DIST, CHEST_SPAWN_MAX_DIST)
 	var pos := player.global_position + Vector2(cos(angle), sin(angle)) * dist
 	chest.global_position = pos.clamp(Vector2(64, 64), ARENA_SIZE - Vector2(64, 64))
-	chest.value = randi_range(REGION_SCENE.chest_gold_min, REGION_SCENE.chest_gold_max)
+	chest.value = randi_range(region.chest_gold_min, region.chest_gold_max)
 	chest.target = player
 	chest.on_collected = _on_chest_collected
 
@@ -492,7 +521,7 @@ func _track_run_end(outcome: StringName, earned: int) -> void:
 		"duration_s": run_time,
 		"kills": kills,
 		"level": player.level,
-		"region": REGION_SCENE.id,
+		"region": region.id,
 		"character": MetaProgress.selected_character,
 		"gold": earned,
 		"gold_raw": run_gold,
@@ -763,7 +792,7 @@ func _on_player_died() -> void:
 	# Überlebenszeit-Bonus bei Tod vor Run-Ende (Wirtschaft §2.3):
 	# (überlebte Minuten / 12) × Voll-Run-Gold-Wert × 0.5.
 	var minutes := run_time / 60.0
-	var survival := roundi(minutes / 12.0 * float(REGION_SCENE.estimated_full_run_gold) * 0.5)
+	var survival := roundi(minutes / 12.0 * float(region.estimated_full_run_gold) * 0.5)
 	var earned := _credit_run_gold(survival, &"survival")
 	_track_run_end(&"death", earned)
 	death_screen.show_results(_format_time(run_time), kills, player.level, earned)
