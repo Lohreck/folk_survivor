@@ -32,6 +32,18 @@ const TALENT_DEFS := {
 		"base_cost": 80,
 		"max_level": 10,
 	},
+	&"chest_drop": {
+		"name": "Glücksfinder",
+		"description": "+5 % Truhen-Chance pro Stufe (Basis 25 %)",
+		"base_cost": 60,
+		"max_level": 5,
+	},
+	&"start_weapon_level": {
+		"name": "Schmiedesegen",
+		"description": "Startwaffe beginnt mit +1 Level pro Stufe",
+		"base_cost": 120,
+		"max_level": 5,
+	},
 	&"rerolls": {
 		"name": "Wahrsagerei",
 		"description": "+1 Karten-Reroll pro Run",
@@ -143,6 +155,18 @@ func start_hp_bonus() -> float:
 ## „Glückshändler“: +5 % Gold pro Stufe (Playtesting §5.3: Soft-Cap +50 %).
 func gold_rate_multiplier() -> float:
 	return 1.0 + 0.05 * talent_level(&"gold_rate")
+
+
+## „Glücksfinder“: +5 Prozentpunkte Truhen-Spawnchance pro Stufe
+## (Basis 25 %, Wirtschaft §3 – additiv auf den Basis-Roll in main.gd).
+func chest_drop_bonus() -> float:
+	return 0.05 * talent_level(&"chest_drop")
+
+
+## „Schmiedesegen“: +1 Level der Startwaffe pro Stufe (Wirtschaft §3).
+## main.gd deckelt die Anwendung auf WeaponData.max_level.
+func start_weapon_bonus_level() -> int:
+	return talent_level(&"start_weapon_level")
 
 
 ## „Wahrsagerei“: Basis 3 Rerolls pro Run, +1 pro Stufe (UI/UX §3, Wirtschaft §3).

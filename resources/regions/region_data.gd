@@ -21,3 +21,7 @@ extends Resource
 ## Geschätzter Gold-Wert eines vollständigen 12-Min-Runs inkl. Truhen
 ## (Wirtschaft §2.2) – Basis des Überlebenszeit-Bonus bei Tod (§2.3).
 @export var estimated_full_run_gold: int = 250
+## Truhen-Gold je Truhe (Wirtschaft §2.2: R1 15–25, R2 20–35, R3 30–45,
+## R4 40–60). Die Defaults entsprechen Region 1 (Dammerwald).
+@export var chest_gold_min: int = 15
+@export var chest_gold_max: int = 25

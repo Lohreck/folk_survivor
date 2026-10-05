@@ -16,6 +16,15 @@ const RANGED_ENEMY_SCENE := preload("res://scenes/enemies/ranged_enemy.tscn")
 const FLYER_ENEMY_SCENE := preload("res://scenes/enemies/flyer_enemy.tscn")
 const ENEMY_PROJECTILE_SCENE := preload("res://scenes/enemies/enemy_projectile.tscn")
 const GEM_SCENE := preload("res://scenes/items/xp_gem.tscn")
+const CHEST_SCENE := preload("res://scenes/items/chest.tscn")
+## Truhen (M4f, Wirtschaft §2.2/§3): Spawn-Versuch alle 60 s mit Basis-
+## Chance 25 % → Erwartung ~3 Truhen pro 12-Min-Run („2–3 pro Run").
+## Talent „Glücksfinder" addiert +5 Prozentpunkte je Stufe auf die Chance.
+const CHEST_ATTEMPT_INTERVAL := 60.0
+const CHEST_BASE_CHANCE := 0.25
+## Spawn-Distanz zum Spieler (px) – außerhalb des direkten Gedränges.
+const CHEST_SPAWN_MIN_DIST := 320.0
+const CHEST_SPAWN_MAX_DIST := 480.0
 const REGION_SCENE := preload("res://resources/regions/region_dammerwald.tres")
 const AXE_SCENE := preload("res://scenes/weapons/axe_weapon.tscn")
 const SICKLE_SCENE := preload("res://scenes/weapons/sickle_weapon.tscn")
@@ -136,6 +145,8 @@ var _boss_spawn_time := 0.0
 var _level_up_rerolled := false
 ## Nächte Sekunde für den 1-Hz-Gegner-Sample (enemy_count_sample, §4).
 var _next_enemy_sample := 1.0
+## Nächster Truhen-Spawn-Versuch (Wirtschaft §2.2/§3, M4f).
+var _next_chest_attempt := CHEST_ATTEMPT_INTERVAL
 
 
 func _ready() -> void:
@@ -302,6 +313,13 @@ func _process(delta: float) -> void:
 		})
 		_next_enemy_sample += 1.0
 
+	# Truhen (Wirtschaft §2.2/§3, M4f): Versuch alle 60 s, Basis-Chance 25 %
+	# (+5 Prozentpunkte je Stufe „Glücksfinder“) → Erwartung ~3 pro Run.
+	if run_time >= _next_chest_attempt:
+		_next_chest_attempt += CHEST_ATTEMPT_INTERVAL
+		if randf() < CHEST_BASE_CHANCE + MetaProgress.chest_drop_bonus():
+			_spawn_chest()
+
 	# FPS-Anzeige alle halbe Sekunde aktualisieren (reicht für Greybox).
 	if Engine.get_process_frames() % 30 == 0:
 		fps_label.text = "FPS: %d" % Engine.get_frames_per_second()
@@ -435,6 +453,34 @@ func _credit_run_gold(flat_bonus: int, source: StringName) -> int:
 		"kill_gold_raw": run_gold,
 	})
 	return earned
+
+
+## Truhe platzieren (Wirtschaft §2.2/§3): zufällige Richtung, 320–480 px
+## vom Spieler, in der Arena geklemmt. Goldwert aus den Region-Daten
+## (R1 15–25). Nicht gepoolt – nur ~3 pro Run.
+func _spawn_chest() -> void:
+	var chest: Chest = CHEST_SCENE.instantiate()
+	add_child(chest)
+	var angle := randf() * TAU
+	var dist := randf_range(CHEST_SPAWN_MIN_DIST, CHEST_SPAWN_MAX_DIST)
+	var pos := player.global_position + Vector2(cos(angle), sin(angle)) * dist
+	chest.global_position = pos.clamp(Vector2(64, 64), ARENA_SIZE - Vector2(64, 64))
+	chest.value = randi_range(REGION_SCENE.chest_gold_min, REGION_SCENE.chest_gold_max)
+	chest.target = player
+	chest.on_collected = _on_chest_collected
+
+
+## Truhe eingesammelt: Der feste Truhen-Betrag fließt wie Kill-Gold in
+## run_gold und wird beim Run-Ende über den Glückshändler gerundet
+## ausgezahlt (Wirtschaft §2.1 – Truhen sind KEIN flacher, unskalierter
+## Bonus wie Boss/Survival). Telemetrie §4: gold_earned, source "chest".
+func _on_chest_collected(value: int) -> void:
+	run_gold += value
+	Telemetry.track(&"gold_earned", {
+		"source": &"chest",
+		"amount": value,
+		"minute": run_time,
+	})
 
 
 ## Run-Ende protokollieren (Telemetrie §4: Region, Charakter, Dauer,
@@ -621,7 +667,18 @@ func _give_starting_weapon() -> void:
 	var def := CharacterDefs.get_def(MetaProgress.selected_character)
 	var weapon_id := StringName(def.get("start_weapon", &"axe_holzfaenger"))
 	var weapon_data := _weapon_data_by_id(weapon_id)
-	_spawn_weapon(weapon_data if weapon_data != null else AXE_DATA)
+	var data := weapon_data if weapon_data != null else AXE_DATA
+	_spawn_weapon(data)
+	# Talent „Schmiedesegen“ (Wirtschaft §3): +1 Start-Level pro Stufe,
+	# gedeckelt durch WeaponData.max_level – dieselben Regeln wie beim
+	# normalen Waffen-Upgrade im Run (damage_for_level, kein Sonderpfad).
+	var bonus_levels := MetaProgress.start_weapon_bonus_level()
+	if bonus_levels > 0:
+		var entry := inventory.weapon_by_id(data.id)
+		for i in bonus_levels:
+			if not inventory.upgrade_weapon(data.id):
+				break
+			(entry.node as WeaponBase).level_up()
 
 
 ## Instanziiert eine Waffenszene aus ihrer WeaponData und verknüpft sie.
