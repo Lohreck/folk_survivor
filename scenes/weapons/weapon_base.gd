@@ -65,7 +65,7 @@ func roll_damage() -> Dictionary:
 	return {"amount": amount, "is_crit": is_crit}
 
 
-## „Kampferfahrung“ (Soldat, Charaktere-Dokument §2.2): +5 % Schaden gegen
+## „Kampferfahrung" (Soldat, Charaktere-Dokument §2.2): +5 % Schaden gegen
 ## Elite- und Boss-Gegner. Aufrufseite: enemy.take_damage(hit.amount *
 ## damage_bonus_vs(enemy)) – der Bonus muss pro Ziel rollen, weil Flächen-
 ## Treffer (Axt-Sweep) gemischte Gruppen treffen.
@@ -74,7 +74,12 @@ func damage_bonus_vs(target: Node2D) -> float:
 		return 1.0
 	if owner_node.get("passive_id") != &"kampferfahrung":
 		return 1.0
-	if (target is TestEnemy and target.is_elite) or target is LeshyBoss:
+	# Rolle statt konkreter Klasse (M4b): Elite-Flag greift auch für die
+	# wiederkehrende Elite-Rusalka, die Rollen MINIBOSS/BOSS für Leshy,
+	# Poludnitsa und Baba Yaga.
+	if target is TestEnemy and (target.is_elite \
+			or target.enemy_role == EnemyData.Role.MINIBOSS \
+			or target.enemy_role == EnemyData.Role.BOSS):
 		return 1.05
 	return 1.0
 

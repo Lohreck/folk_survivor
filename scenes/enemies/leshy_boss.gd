@@ -1,4 +1,4 @@
-extends TestEnemy
+extends BossBase
 class_name LeshyBoss
 ## Leshy – Hauptboss Region 1 „Dammerwald" (M2c-3).
 ##
@@ -61,21 +61,9 @@ func _change_terrain() -> void:
 	_active_hazard = hazard
 
 
-## Boss ist nicht Teil des Gegner-Pools: bei Tod kein Pool-Return, sondern
-## Freigabe + Hazards aufräumen (sonst bleibt die Formation für immer stehen).
-func take_damage(amount: float) -> void:
-	_hp -= amount
-	if _hp <= 0.0:
-		if _active_hazard != null and is_instance_valid(_active_hazard):
-			_active_hazard.queue_free()
-		if on_died.is_valid():
-			on_died.call(self)
-		queue_free()
-	else:
-		_visual.modulate = Color(2.0, 2.0, 2.0)
-		_flash_time = 0.08
-
-
-## HUD-Boszbalken (Wert 0–1). Public-Getter, da _hp bewusst privat ist.
-func hp_ratio() -> float:
-	return clampf(_hp / max_hp, 0.0, 1.0)
+## Beim Tod bleibt keine Formation stehen: Hazard vor dem Sieg-Callback
+## entfernen (BossBase take_damage ruft das VOR on_died auf).
+func _on_death_cleanup() -> void:
+	if _active_hazard != null and is_instance_valid(_active_hazard):
+		_active_hazard.queue_free()
+	_active_hazard = null

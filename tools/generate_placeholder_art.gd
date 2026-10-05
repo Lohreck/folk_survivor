@@ -116,6 +116,7 @@ func _initialize() -> void:
 	_gen_upyr()
 	_gen_vodyanoy()
 	_gen_rusalka()
+	_gen_poludnitsa()
 	_gen_leshy()
 	_gen_tree()
 	_gen_gem()
@@ -548,6 +549,62 @@ func _gen_rusalka() -> void:
 		"w": _mat(Color(0.21, 0.29, 0.23)),       # nasser Haarwall
 		"p": _mat(Color(0.77, 0.77, 0.71)),       # bleicher Körper
 		"e": _flat(Color(0.08, 0.10, 0.09)),      # Augenhöhlen
+	})
+
+
+## ---------- Poludnitsa: Mittagsfee mit der Sichel (48x48, Mini-Boss) ----------
+
+func _gen_poludnitsa() -> void:
+	var r := _blank(48, 48)
+	# Hohe, magere Gestalt im sonnengebleichten Feldkleid.
+	_stamp_rect(r, 20, 16, 27, 42, "d")
+	_stamp_rect(r, 18, 24, 19, 41, "d")
+	_stamp_rect(r, 28, 24, 29, 41, "d")
+	_stamp_rect(r, 16, 32, 17, 40, "d")
+	_stamp_rect(r, 30, 32, 31, 40, "d")
+	# Kopf (bleich, schmal) mit heruntergezogenem Kopftuch.
+	_stamp_ellipse(r, 23, 10, 5, 6, "p")
+	_stamp_rect(r, 18, 4, 28, 5, "y")
+	_stamp_line(r, 17, 6, 17, 15, "y")
+	_stamp_line(r, 29, 6, 29, 15, "y")
+	_stamp_pixel(r, 18, 16, "y")
+	_stamp_pixel(r, 28, 16, "y")
+	# Hohle Augen + aufgerissener Mund (Mittagsgesang).
+	_stamp_pixel(r, 21, 10, "e")
+	_stamp_pixel(r, 25, 10, "e")
+	_stamp_rect(r, 22, 13, 24, 13, "e")
+	# Schulter- und Falten-Schatten.
+	_stamp_rect(r, 20, 16, 27, 17, "y")
+	_stamp_line(r, 24, 20, 24, 41, "y")
+	_stamp_line(r, 21, 22, 21, 38, "y")
+	_stamp_line(r, 26, 22, 26, 38, "y")
+	# ausgestreckte Arme mit Händen.
+	_stamp_line(r, 18, 22, 11, 29, "p")
+	_stamp_line(r, 29, 22, 36, 29, "p")
+	_stamp_rect(r, 9, 30, 12, 31, "p")
+	_stamp_rect(r, 35, 30, 38, 31, "p")
+	# Sichel in der rechten Hand (heller Bogen mit Stiel).
+	_stamp_line(r, 6, 24, 9, 21, "f")
+	_stamp_line(r, 6, 24, 8, 27, "f")
+	_stamp_pixel(r, 10, 20, "f")
+	_stamp_line(r, 12, 27, 14, 25, "h")
+	# Stroh-/Erntefäden am Saum.
+	for p: Array in [[16, 43], [19, 44], [23, 43], [27, 44], [31, 43]]:
+		_stamp_line(r, p[0], p[1], p[0], p[1] + 2, "d")
+	# Sonnenstaub + Feld-Textur.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 405
+	_speckle(r, 16, 18, 31, 42, "d", "y", 0.24, rng)
+	_speckle(r, 16, 18, 31, 42, "d", "s", 0.10, rng)
+	_hem(r, 42, 16, 31, 0.45, rng)
+	_render("poludnitsa.png", r, {
+		"d": _mat(Color(0.76, 0.67, 0.39)),       # Feldkleid (Sonnenstroh)
+		"s": _mat(Color(0.56, 0.47, 0.26)),       # Falten-Schatten
+		"y": _mat(Color(0.85, 0.77, 0.47)),       # Kopftuch / Lichtfalte
+		"p": _mat(Color(0.80, 0.77, 0.71)),       # bleiche Haut
+		"e": _flat(Color(0.10, 0.09, 0.07)),      # hohle Augen / Mund
+		"f": _mat(Color(0.80, 0.84, 0.87)),       # Sichelblatt
+		"h": _mat(Color(0.36, 0.27, 0.18)),       # Stiel
 	})
 
 

@@ -64,6 +64,16 @@ const BOSS_DATA := preload("res://resources/enemies/leshy.tres")
 ## Schlamm-Zone (M4b, Regions-Hazard): Klasse statt Szene – Form und
 ## Kollision werden pro Instanz im _ready() aufgebaut.
 const MUD_ZONE_SCRIPT := preload("res://scenes/regions/mud_zone.gd")
+## Mini-Boss-Slot (M4b): scripted bei Minute 6 (Balancing §3.4); Regionen
+## ohne mini_boss_id (Region 1) lassen den Slot leer. Über die ID des
+## konkreten Bosses aufgelöst, wie die Hauptbosse in M4b-D.
+const MINIBOSS_MINUTE := 6.0
+const MINIBOSS_SCENES := {
+	&"poludnitsa": preload("res://scenes/bosses/poludnitsa_boss.tscn"),
+}
+const MINIBOSS_DATA := {
+	&"poludnitsa": preload("res://resources/enemies/poludnitsa.tres"),
+}
 const ARENA_SIZE := Vector2(4096, 4096)
 ## Aura-Radius des Domovoi-Glöckchens auf Stufe 1 (px) – wächst mit der
 ## Level-Stufe bis zur Verdopplung auf Stufe 5 (Waffen-Dokument §3).
@@ -151,10 +161,16 @@ var _pause_overlay: Control
 var _pause_button: Button
 
 ## Hauptboss (M2c-3): spawnt bei Minute 10 (Spawning stoppt -> Boss-Slot).
-var _boss: LeshyBoss = null
+var _boss: BossBase = null
 var _boss_spawned := false
 ## Spawn-Zeitpunkt für die Boss-TTK (Telemetrie §4: boss_defeated „Zeit bis Kill“).
 var _boss_spawn_time := 0.0
+## Mini-Boss (M4b): scripted bei Minute 6, genau einmal pro Run; beim Sieg
+## Buff + flacher Gold-Bonus (kein Regions-Fortschritt, der hängt am
+## Hauptboss).
+var _miniboss: BossBase = null
+var _miniboss_spawned := false
+var _miniboss_spawn_time := 0.0
 
 ## Telemetrie (§4): ob für das aktuell offene Level-Up gerollt wurde
 ## (level_up-Event „Reroll ja/nein“). Wird beim Öffnen zurückgesetzt.
@@ -333,6 +349,12 @@ func _process(delta: float) -> void:
 	if not _boss_spawned and run_minute >= 10.0:
 		_spawn_boss()
 
+	# Mini-Boss-Slot (M4b): scripted bei Minute 6 (Balancing §3.4), einmalig;
+	# Regionen ohne mini_boss_id (Region 1) bleiben leer.
+	if not _miniboss_spawned and region.mini_boss_id != &"" \
+			and run_minute >= MINIBOSS_MINUTE:
+		_spawn_miniboss()
+
 	# Telemetrie (§4): aktive Gegner 1×/s sampeln (Performance + Spawn-Tuning).
 	if run_time >= _next_enemy_sample:
 		Telemetry.track(&"enemy_count_sample", {
@@ -352,10 +374,17 @@ func _process(delta: float) -> void:
 	if Engine.get_process_frames() % 30 == 0:
 		fps_label.text = "FPS: %d" % Engine.get_frames_per_second()
 
-	# Boszbalken (M2c-3): anzeigen, solange Leshy lebt.
+	# Boszbalken (M2c-3): zeigt, welcher der beiden Bosse gerade lebt
+	# (M4b-Verallgemeinerung). Nach dem Tod des Mini-Boss mitten im Run
+	# wieder unsichtbar – sonst bliebe eine leere Leiste stehen.
+	var bar_target: BossBase = null
 	if _boss != null and is_instance_valid(_boss):
-		boss_bar.visible = true
-		boss_bar.value = _boss.hp_ratio()
+		bar_target = _boss
+	elif _miniboss != null and is_instance_valid(_miniboss):
+		bar_target = _miniboss
+	boss_bar.visible = bar_target != null
+	if bar_target != null:
+		boss_bar.value = bar_target.hp_ratio()
 
 	_update_hud()
 
@@ -442,7 +471,7 @@ func _fire_enemy_projectile(pos: Vector2, dir: Vector2, speed: float, damage: fl
 func _spawn_boss() -> void:
 	_boss_spawned = true
 	_boss_spawn_time = run_time
-	var boss: LeshyBoss = BOSS_SCENE.instantiate()
+	var boss: BossBase = BOSS_SCENE.instantiate()
 	enemy_container.add_child(boss)
 	boss.setup_from_data(BOSS_DATA, 1.0, 1.0, false)
 	boss.global_position = _random_offscreen_position()
@@ -452,9 +481,59 @@ func _spawn_boss() -> void:
 	Telemetry.track(&"boss_spawn", {"minute": run_minute, "time_s": run_time})
 
 
+## Mini-Boss spawnen (M4b): scripted-Einzelinstanz über region.mini_boss_id;
+## HP/Schaden FIX über setup_boss (Balancing §6, keine Multiplikatoren).
+func _spawn_miniboss() -> void:
+	_miniboss_spawned = true
+	if not MINIBOSS_SCENES.has(region.mini_boss_id):
+		return  # Unbekannte ID: Slot bleibt leer statt unsichtbar zu crashen
+	var miniboss: BossBase = (MINIBOSS_SCENES[region.mini_boss_id] as PackedScene).instantiate()
+	enemy_container.add_child(miniboss)
+	miniboss.setup_boss(MINIBOSS_DATA[region.mini_boss_id])
+	miniboss.global_position = _random_offscreen_position()
+	miniboss.target = player
+	miniboss.on_died = _on_miniboss_died
+	_miniboss = miniboss
+	_miniboss_spawn_time = run_time
+	Telemetry.track(&"miniboss_spawn", {"minute": run_minute, "time_s": run_time})
+
+
+## Mini-Boss-Sieg (M4b): flacher Gold-Bonus = 50 % des Hauptboss-Bonus
+## (Wirtschaft §2.2) – NICHT über _credit_run_gold, das würde das laufende
+## Run-Gold vorzeitig auszahlen. Außerdem Buff für den Rest des Runs.
+func _on_miniboss_died(miniboss: TestEnemy) -> void:
+	kills += 1
+	run_gold += miniboss.gold_value
+	Telemetry.track(&"gold_earned", {
+		"source": &"kills",
+		"amount": miniboss.gold_value,
+		"enemy": miniboss.source_id,
+	})
+	# XP-Gem wie bei jedem Kill (der Hauptboss zahlt bewusst keins – der
+	# Mini-Boss ist ein ~30-s-Fight und soll XP wert sein).
+	var gem := EnemyPoolManager.get_instance(POOL_GEMS)
+	if gem != null:
+		gem.global_position = miniboss.global_position
+		gem.value = miniboss.xp_value
+	var bonus := roundi(region.boss_gold_bonus * 0.5)
+	MetaProgress.add_gold(bonus)
+	Telemetry.track(&"gold_earned", {
+		"source": &"miniboss",
+		"amount": bonus,
+		"flat_bonus": bonus,
+	})
+	Telemetry.track(&"miniboss_defeated", {
+		"minute": run_minute,
+		"ttk_s": run_time - _miniboss_spawn_time,
+	})
+	# Buff (Regionen-Dok §3): Schlamm-Verlangsamung halbieren, solange die
+	# Zonen noch stehen – mud_zones-Gruppe meldet pro Zone ihren Wert.
+	get_tree().call_group(&"mud_zones", "reduce_slow", 0.5)
+
+
 ## Boss-Sieg: Run erfolgreich beendet (Meilenstein-2-Kriterium: Boss-Sieg
 ## ODER -Niederlage nach komplettem 12-Minuten-Run).
-func _on_boss_died(boss: LeshyBoss) -> void:
+func _on_boss_died(boss: BossBase) -> void:
 	kills += 1
 	running = false
 	run_gold += boss.gold_value

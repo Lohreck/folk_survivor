@@ -29,6 +29,7 @@ func _ready() -> void:
 	collision_mask = 1  # Layer 1 = Spieler (player._ready)
 	monitoring = true
 	monitorable = false
+	add_to_group(&"mud_zones")  # reduce_slow() bei Mini-Boss-Sieg (M4b)
 	var shape := CollisionShape2D.new()
 	var circle := CircleShape2D.new()
 	circle.radius = RADIUS
