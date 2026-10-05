@@ -33,7 +33,7 @@ Hinweis: **Grobgerüst.** Dieses Dokument führt alle Tuning-Punkte aus den übr
 | Framerate (Mittelklasse-Android) | p50 ≥ 60 FPS, p95 ≥ 30 FPS | On-Device-Logging |
 | Tod-Minute (Verteilung) | Mehrheit der Tode Min. 8–12; frühe Tode selten | Run-Telemetrie |
 | Winrate pro Region (erstmalig) | R1 ~60–70 %, fallend bis R4 ~15–25 % | Run-Telemetrie |
-| TTK Trash / Elite / Boss | 0,3–0,6 s / 3–8 s / 45–90 s | Testmessung |
+| TTK Trash / Elite / Mini-Boss / Boss | 0,3–0,6 s / 3–8 s / 20–45 s / 45–90 s | Testmessung |
 | Erreichtes Level pro Run | 20–30 | Run-Telemetrie |
 | Build-Varianz | keine Waffe/Evolution > 40 % Pickrate | Level-Up-Logging |
 | Zeit bis Talentbaum-Stufe 10 | ~5–6 Runs | Meta-Telemetrie |
@@ -51,8 +51,9 @@ Hinweis: **Grobgerüst.** Dieses Dokument führt alle Tuning-Punkte aus den übr
 | `level_up` (gewählte Karte, Reroll ja/nein) | Build-Varianz, Reroll-Tuning |
 | `weapon_evolved` / `double_evolved` | Erreichbarkeit der Evolutionen |
 | `boss_spawn` / `boss_defeated` (Zeit bis Kill) | TTK-Boss |
+| `miniboss_spawn` / `miniboss_defeated` (Minute, Zeit bis Kill) | TTK + Timing des Mini-Boss-Slots |
 | `perun_spawn` / `perun_defeated` | Seltenheits-Tuning |
-| `gold_earned` (Quelle: Kills/Truhen/Boss) | Ökonomie |
+| `gold_earned` (Quelle: Kills/Truhen/Boss/Mini-Boss) | Ökonomie |
 | `talent_purchased` | Meta-Pacing |
 | `enemy_count_sample` (1×/s, aktive Gegner) | Performance + Spawn-Tuning |
 | `death_cause` (Gegnertyp/Schaden) | One-Shot-Erkennung |
@@ -67,9 +68,15 @@ Details:
 - `gold_earned.source` = `kills` (pro Kill, `amount` = `EnemyData.gold_value`,
   `enemy` = Gegner-ID) | `chest` (pro Truhe, `amount` = Rohtwert der Truhe,
   `minute` = Laufzeit; M4f) | `boss` | `survival` (beide als `credited_total` =
-  die ausgezahlte Run-Summe inkl. Talent-Multiplikator, nicht blind summieren).
+  die ausgezahlte Run-Summe inkl. Talent-Multiplikator, nicht blind summieren)
+  | `miniboss` (M4b: flacher Bonus **sofort** beim Sieg mitten im Run,
+  `flat_bonus` = `amount` = 50 % des `boss_gold_bonus`, kein `credited_total`).
+- `miniboss_spawn` (`minute`, `time_s`) / `miniboss_defeated` (`minute`,
+  `ttk_s`) seit M4b verdrahtet – Grundlage für Slot-Timing (§3.4) und den
+  Mini-Boss-TTK-Korridor 20–45 s.
 - `death_cause.source` = EnemyData-ID bei Kontakt/Projektil bzw.
-  `leshy_baumformation` (Terrain-Hazard); `amount` = letzter Treffer,
+  `leshy_baumformation` (Terrain-Hazard) und `baba_yaga_zone`
+  (Safe-Zone-Tick der Baba Yaga, M4b); `amount` = letzter Treffer,
   `max_hp` erlaubt die One-Shot-Prüfung `amount >= max_hp`.
 - `perun_spawn`/`perun_defeated` und `double_evolved` sind noch NICHT verdrahtet –
   Perun-Boss und Doppel-Evolutionen existieren erst später (M4).
@@ -94,6 +101,11 @@ Details:
 | Fernkämpfer-Cap | 6 aktiv (Ranged + Flyer, Elites ausgenommen) | keine Ansammlung bei Wellen; Fernkämpfer bleiben beherrschbar | gleichzeitige Fernkämpfer (Beobachtung) | Ansammlung weiter spürbar → 4; Cap nie erreicht → 8 oder entfernen |
 | XP-Kurve | `6 × L^1.5` | Level 20–30 pro Run | erreichtes Level | > 30 → Kurve steiler |
 | Waffen-DPS/Level | ×1.30 | Build-Kurve passt zu Gegner-HP | DPS zu Min. X | TTK driftet → Basis anpassen |
+| Schlamm-Slow R2 | 30 %, 6 Zonen (M4b) | Wege um Pfützen führen, kein Dauerstillstand | Slow-Uptime des Spielers (Beobachtung) | Stillstand-Gefühl → Slow 25 % oder Radius −20 px |
+| Schlamm-Buff nach Mini-Boss | ×0.5 für den Rest des Runs | spürbarer Schub für den zweiten Halbzeit-Abschnitt | Todesanteil nach Minute 8 | Auto-Pilot-Gefühl → ×0.7 statt ×0.5 |
+| Poludnitsa-Aura | 240 px / 25 % (M4b) | Aura spürbar, aber Ausweichen/Rückzug möglich | TTK Poludnitsa, Zeit in Aura | TTK > 45 s → Slow 20 %; kaum Wirkung → Radius 280 |
+| Baba-Yaga-Safe-Zone | 520 → 430 → 340 → 250 px, 2.6 s/Stufe, 10 DPS (M4b) | Zone lesbar (Warnpuls), Schaden vermeidbar | Anteil `baba_yaga_zone` am Run-Schaden | > 15 % → Radien +30 px oder DPS auf 8 |
+| Mini-Boss-Slot | Minute 6 (M4b) | Zwischenschritt vor dem Hauptboss, keine Doppelbelastung mit Elite-Wellen | Tode Minuten 6–8 | > 20 % Tode dort → Slot auf Minute 7 |
 
 ### 5.2 Charaktere & Waffen (Quelle: `Charaktere_Ausdifferenzierung_v0.1.md`, `Waffen_Evolutionen_v0.1.md`)
 

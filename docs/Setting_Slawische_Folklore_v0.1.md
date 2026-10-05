@@ -87,3 +87,4 @@ Statt klassischer Elfen/Orks/Drachen greift das Spiel auf slawische und baltisch
 - **Regionen-Aufteilung** – ausgearbeitet: siehe `Regionen_Slawische_Folklore_v0.1.md`
 - **Balancing der Werte (HP, Schaden, Spawn-Raten)** – ausgearbeitet: siehe `Balancing_Gegner_Spawnkurven_v0.1.md`
 - **Perun als seltener Zwischenboss/Verbündeter** – entschieden: seltener Spawn in Region 4, nach Sieg starker Verbündeter (siehe Regionen-, Balancing- und Sound-Dokument)
+- **Rusalka-Screen-Verzerrung (visueller Song-Effekt)** – bewusst **nicht** in M4b umgesetzt: Der Sog-Pull greift (Ziehen zum Ziel), der Bildschirmrand-Verzerrungs-Effekt bleibt offen. Abwägung offen: Effekt braucht eine barrierefreie Entsprechung (nicht nur Farbe/Bewegung, siehe Barrierefreiheits-Dokument §3.2) und darf das Lesen von HUD-Werten nicht erschweren – vor Umsetzung gegen Aufwand abwägen, ob der Effekt die Wiedererkennbarkeit der Rusalka zusätzlich zum Sog trägt

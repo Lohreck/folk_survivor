@@ -43,6 +43,7 @@ Das Balancing folgt drei getrennten Skalierungs-Achsen, die sich multiplizieren:
 | Aitvaras | 1 (vereinzelt) / 2 | Flieger | 15 | 4 | 0.65 | 2 | 0.10 |
 | Upyr | 2 | Verfolger / Lifesteal | 30 | 12 | 1.25 | 3 | 0.13 |
 | Vodyanoy | 2 | Sog / Nahkampf | 45 | 15 | 0.65 | 3 | 0.16 |
+| Rusalka | 2 | Elite-Mini-Boss (wiederkehrend) | 80 | 14 | 0.75 | 4 | 0.30 |
 | Velnias-Diener | 3 | Schild / Nahkampf | 60 | 14 | 0.80 | 3 | 0.30 |
 | Žaltys (verflucht) | 4 | Elite / Peitsche | 90 | 18 | 0.85 | 4 | 0.30 |
 
@@ -99,9 +100,11 @@ Die `spawn_weight`-Werte der `EnemyData`-Resources werden pro Region verschoben,
 | Region | Standard-Mix | Ab Minute 5 zusätzlich | Ab Minute 9 zusätzlich |
 |---|---|---|---|
 | 1 | Kikimora 78% / Domovoi 15% / Aitvaras 7% | Erste Elite (Aitvaras-Gruppe) | Domovoi-Anteil ↑ |
-| 2 | Upyr 35% / Aitvaras 25% / Domovoi 20% / Vodyanoy 20% | Vodyanoy ↑ | Rusalka-Spawn (wiederkehrend) |
+| 2 | Upyr 35% / Aitvaras 25% / Domovoi 20% / Vodyanoy 20% | Vodyanoy-Boost ↑, erste Elite = Rusalka (wiederkehrend) | keine weitere Mix-Änderung (nur Rate einfrieren) |
 | 3 | Domovoi 40% / Kikimora 35% / Velnias-Diener 25% | Velnias ↑ | Kikimora-Dichte ↑ |
 | 4 | Elite-Mix aus allen Regionen + Žaltys | Žaltys ↑ | gemischte Elite-Wellen |
+
+**Umsetzung R2 (M4b, `region_sumpfmoor.tres`):** Upyr 35 und Vodyanoy 20 ab Minute 0, Domovoi 20 ab Minute 2, Aitvaras 25 ab Minute 3, dazu Vodyanoy-Boost (Gewicht 15) und die Rusalka-Elite (`weight 0`, nur Elite-Slot, `is_elite`) ab Minute 5. Kikimora ist komplett raus; Domovoi/Aitvaras kommen weiter aus Region 1 (geografische Durchmischung).
 
 ### 3.4 Feste Ereignisse pro Run
 
@@ -211,6 +214,8 @@ Schaden_effektiv = Basis_Schaden × Region_Dmg_Mult × Schaden_Multiplikator(Min
 
 *Rollen-Klarstellung:* **Rusalka** ist ein wiederkehrender Mini-Boss-Gegner (kann mehrfach erscheinen), **Poludnitsa** der einmalige scripted Mini-Boss bei ca. 50 % der Run-Zeit (siehe Regionen-Dokument).
 
+**Umsetzung R2 (M4b):** Poludnitsa (`poludnitsa.tres`, MINIBOSS) spawn bei **Minute 6** über `region.mini_boss_id`, 2.600 HP FIX, Verlangsamungs-Aura 240 px / 25 % (läuft auch im Stun), Sieg = flacher Gold-Bonus 65 + Buff „Schlamm-Slow ×0.5". Baba Yaga (`baba_yaga.tres`, BOSS) ab Minute 10 über `region.main_boss_id`, 23.000 HP FIX, Safe-Zone zentriert auf der Spielerposition: Radius 520 → 430 → 340 → 250 px (Stufe 2.6 s, davon 0.8 s Warnpuls mit Geisterring der nächsten Größe), Tick-Schaden 10/s außerhalb (Quelle `baba_yaga_zone`), Neucast nach 1.6 s Pause auf der aktuellen Spielerposition; im Stun friert die Zone ein.
+
 **Elite-Zwischenwellen:** Elite-HP = Standard-HP × `Ziel-Elite-TTK / Ziel-Trash-TTK`. Bei Trash ~0,4 s und Elite ~4 s ergibt das grob **×10** (nicht ×5 – die alte Faustregel machte Elites zu schnell sterblich). Beispiel: Aitvaras-Elite Region 1, Minute 5: `15 × 1.0 × 1.74 × 10 ≈ 261 HP` → bei ~60 DPS ca. 4,3 s TTK. Elites erscheinen ab Minute 5, danach ca. alle 60–90 s.
 
 **Boss-HP-Skalierung:** Boss-HP ist **nicht** vom Zeit-Multiplikator betroffen (fixe Spawn-Zeitpunkte); der Regionen-Multiplikator ist bereits eingerechnet.
@@ -308,7 +313,7 @@ Waffen_DPS(Level) = Start_DPS × 1.30 ^ (Level - 1)
 ## 11. Offene Punkte
 - Feinjustierung der stückweisen HP-Kurve (Spike-Höhen) und der 0.30er-Spawn-Steigung nach ersten Performance-/Playtest-Daten
 - Ob Schaden-Skalierung (linear) auf höheren Regionen doch stärker steigen muss, damit Region 4 ohne One-Shots fordernd bleibt – Playtesting
-- Genaue `spawn_weight`-Werte pro Region als konkrete `.tres`-Zahlen (hier nur Prozent-Mix als Zielbild)
+- Genaue `spawn_weight`-Werte pro Region als konkrete `.tres`-Zahlen (R1/R2 sind mit M4a/M4b umgesetzt, R3/R4 folgen mit M4c/M4e; hier als Zielbild nur der Prozent-Mix)
 - Verhältnis Elite-Häufigkeit zu Spieler-DPS-Kurve (ob ×10 HP für Elites ab Minute 5 passt)
 
 → Alle tuning-relevanten Punkte mit Startwert, Messgröße und Anpassungsregel: `Playtesting_Tuning_Plan_v0.1.md` (Abschnitt 5.1).

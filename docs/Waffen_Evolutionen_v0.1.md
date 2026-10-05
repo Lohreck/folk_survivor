@@ -101,7 +101,7 @@ Zwei **fertige Evolutionswaffen** können zu einer ultimativen Waffe verschmelze
 ## 6. Offene Punkte
 - ~~Ob ein Level-Up-Screen-Hinweis (siehe Punkt 1) technisch/visuell sauber umsetzbar ist~~ *(erledigt, M4d)*: Der Hinweis sitzt in der Beschreibung der Waffen-Level-Karte ab Lv. 6 – kein zusätzliches UI-Element, Screen bleibt unverändert
 - Feinbalancing der Prozentwerte (Playtesting nötig, besonders bei Todesschnitt-Lifesteal, das sich potenziell zu stark "snowballen" könnte)
-- `wasser`/`geist`-Tags: Der ×2-Bonus der Phiole-Evolution greift erst, wenn die Regions-Gegner (Vodyanoy, Rusalka, Upyr) ihre `tags` tragen – bei der Anlage in M4a–c setzen (Hausgeist-Tags domovoi/aitvaras sind erledigt)
+- ~~`wasser`/`geist`-Tags: Der ×2-Bonus der Phiole-Evolution greift erst, wenn die Regions-Gegner (Vodyanoy, Rusalka, Upyr) ihre `tags` tragen~~ *(erledigt, M4b-A)*: Vodyanoy (`wasser,geist,sog`), Rusalka (`wasser,geist,pull`) und Upyr (`geist`) tragen ihre Tags in ihren `.tres`-Resources; die Gegner der Regionen 3/4 (Velnias-Diener, Žaltys) hängen noch an M4c/M4e
 - Feinbalancing der Doppel-Evolutionen (Drop-Wahrscheinlichkeit des Ahnen-Items, Stärke der Fusionseffekte) – siehe Punkt 5
 
 → Alle tuning-relevanten Punkte mit Startwert, Messgröße und Anpassungsregel: `Playtesting_Tuning_Plan_v0.1.md` (Abschnitt 5.2).
