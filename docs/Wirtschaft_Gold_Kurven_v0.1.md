@@ -67,10 +67,14 @@ Kosten(Stufe n) = Basis-Kosten × 1.35^(n-1)
 → Bei ~595 Gold/Run (Region 2, siehe oben) ist Stufe 5 nach ca. 1 Run erreichbar, Stufe 10 nach ca. 5–6 Runs – fühlt sich über eine Woche verteilt angemessen an (mehrere Runs pro Tag realistisch bei 12-Min-Sessions).
 
 **Weitere Talentbaum-Kategorien (gleiche Kurvenlogik, unterschiedliche Basis-Kosten):**
-- Gold-Rate +X% (Basis 80 Gold – bewusst teurer, da es sich selbst verstärkt/"snowballt")
-- Drop-Chance für Truhen +X% (Basis 60 Gold)
-- Start-Waffe-Level +1 (Basis 120 Gold – starker Vorteil, daher teurer)
+- Gold-Rate +5 % (Basis 80 Gold, max. 10 Stufen = +50 % Soft-Cap – bewusst teurer, da es sich selbst verstärkt/"snowballt")
+- Truhen-Chance +5 Prozentpunkte (Basis 60 Gold, max. 5 Stufen – additiv auf die Basis-Chance 25 %, Timing siehe §6)
+- Start-Waffe-Level +1 (Basis 120 Gold, max. 5 Stufen – starker Vorteil, daher teurer; Anwendung gedeckelt auf Waffen-Level 8)
 - Start-Rerolls +1 (Basis 100 Gold, max. +2 Stufen – Komfort/Build-Konsistenz, siehe UI-Dokument)
+
+**Umsetzungsstand (M4f):** Alle fünf Knoten implementiert – Definitionen in
+`MetaProgress.TALENT_DEFS`, Effekt-Helfer direkt daneben; main.gd wendet
+Truhen-Spawn-Chance (Versuch alle 60 s) und Startwaffen-Level beim Run-Start an.
 
 ---
 
@@ -103,7 +107,7 @@ Kosten(Stufe n) = Basis-Kosten × 1.35^(n-1)
 ---
 
 ## 6. Offene Punkte
-- Exakte Anzahl/Timing der Truhen-Spawns pro Run (aktuell nur grob "2–3 pro Run" angenommen)
+- ~~Exakte Anzahl/Timing der Truhen-Spawns pro Run~~ *(erledigt, M4f)*: Spawn-Versuch alle 60 s × 25 % Basis-Chance ≈ 3 pro 12-Min-Run; Talent „Glücksfinder" bringt bis +25 Prozentpunkte – Feintuning über Playtesting §5.3
 - Ob Gold-Rate-Talent einen Soft-Cap braucht, um Inflation über viele Spielwochen zu verhindern
 - Battle-Pass-Preisgestaltung im Detail (Free vs. Premium Track, genaue Belohnungsliste)
 - A/B-Testing-Bedarf für die 1.35er-Exponentialbasis – ggf. je nach früher Retention-Daten anpassen

@@ -65,9 +65,9 @@ Details:
   `death_minute` nur bei `death`. Zusatzfelder: `kills`, `level`, `gold` (kreditiert),
   `gold_raw` (fraktionale Kill-Summe).
 - `gold_earned.source` = `kills` (pro Kill, `amount` = `EnemyData.gold_value`,
-  `enemy` = Gegner-ID) | `boss` | `survival` (beide als `credited_total` = die
-  ausgezahlte Run-Summe inkl. Talent-Multiplikator, nicht blind summieren).
-  Truhen fehlen weiterhin (Wirtschaft §6, offener Punkt).
+  `enemy` = Gegner-ID) | `chest` (pro Truhe, `amount` = Rohtwert der Truhe,
+  `minute` = Laufzeit; M4f) | `boss` | `survival` (beide als `credited_total` =
+  die ausgezahlte Run-Summe inkl. Talent-Multiplikator, nicht blind summieren).
 - `death_cause.source` = EnemyData-ID bei Kontakt/Projektil bzw.
   `leshy_baumformation` (Terrain-Hazard); `amount` = letzter Treffer,
   `max_hp` erlaubt die One-Shot-Prüfung `amount >= max_hp`.
@@ -116,6 +116,8 @@ Details:
 | Parameter | Startwert | Erfolgskriterium | Messgröße | Anpassungsregel |
 |---|---|---|---|---|
 | Talent-Kostenkurve | `Basis × 1.35^(n-1)` | Stufe 10 nach ~5–6 Runs | `talent_purchased` | zu langsam → Basis 1.30 |
+| Truhen-Spawnchance | 25 % je 60-s-Versuch (+5 %/Stufe, max 5) | 2–3 Truhen/Run, kein Gold-Overflow | `gold_earned` (`source=chest`) | > 4 Truhen/Run → Basis-Chance auf 20 % |
+| Start-Waffe-Level-Talent | +1/Stufe, max 5 (Basis 120) | früher Power-Spike, kein trivialer Early-Run | TTK Min. 1–3 | Early-TTK < 0,2 s → Max-Level auf 3 |
 | Run-Gold (R2) | ~595 | fühlt sich lohnend, nicht inflationär | `gold_earned` | > 800 → Gold/Kill senken |
 | Truhen pro Run | 2–3 | gleichmäßiger Belohnungs-Rhythmus | Truhen/Run | zu selten → Spawn-Chance |
 | Gold-Rate-Talent | Basis 80 Gold | kein Runaway über Wochen | Gold/Run über Zeit | Soft-Cap bei +50 % |
