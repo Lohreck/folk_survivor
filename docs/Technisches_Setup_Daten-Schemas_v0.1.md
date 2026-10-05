@@ -227,15 +227,21 @@ enum Unlock { START, GOLD, PROGRESS }
 class_name RegionData extends Resource
 @export var id: StringName
 @export var display_name: String
+@export var region_number: int                    # M4a: lineare Freischaltung
 @export var map_scene: PackedScene
+@export var ground_tint: Color                    # M4a: Greybox-Bodentönung
 @export var hp_multiplier: float
 @export var damage_multiplier: float
 @export var spawn_basis: float
-@export var music_layers: Array[AudioStream]
+@export var music_layers: Array[AudioStream]      # geplant, noch nicht implementiert
 @export var enemy_spawn_table: Array[EnemySpawnEntry]   # EnemyData + weight
 @export var mini_boss_id: StringName
 @export var main_boss_id: StringName
 @export var unlock_condition: StringName
+@export var boss_gold_bonus: int
+@export var estimated_full_run_gold: int          # Basis Überlebenszeit-Bonus (§2.3)
+@export var chest_gold_min: int                   # M4f: Truhen-Gold je Region
+@export var chest_gold_max: int
 ```
 
 ```gdscript

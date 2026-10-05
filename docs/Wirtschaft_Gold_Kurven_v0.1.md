@@ -38,6 +38,8 @@ Run-Gold = (Kills × Ø-Gold-pro-Kill) + Truhen-Gold + Boss-Bonus + Überlebensz
 
 **Beispiel Region 2, vollständiger Run:** ~2.500 × 0.13 ≈ 325 Gold (Kills) + ~75 Gold (Truhen) + 130 (Boss) + 65 (Mini-Boss, ca. 50% des Hauptboss-Bonus) ≈ **595 Gold pro vollem Run**
 
+**Vollsummen (Basis des Überlebenszeit-Bonus aus §2.3, als `RegionData.estimated_full_run_gold` hinterlegt):** R1 250 · R2 595 · R3 860 · R4 1440. Rechenweg wie das R2-Beispiel (Kills + Truhen + Boss + ~50 % Mini-Boss); R3 und R4 sind daraus abgeleitete Startwerte.
+
 ### 2.3 Überlebenszeit-Bonus (bei Tod vor Run-Ende)
 ```
 Anteiliger Bonus = (überlebte Minuten / 12) × Vollständiger-Run-Gold-Wert × 0.5

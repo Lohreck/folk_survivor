@@ -77,3 +77,8 @@ Jede Region ist eine eigene Map (freischaltbar über Meta-Progression), mit eige
 - **Entschieden:** Region 1 bekommt **keinen** Mini-Boss – sie bleibt bewusst reine Tutorial-Region mit nur einem Endboss (Leshy)
 
 → Genaue Spawn-Kurven/Tuning: siehe `Balancing_Gegner_Spawnkurven_v0.1.md` und `Playtesting_Tuning_Plan_v0.1.md` (Abschnitt 5.1).
+
+### Umsetzungsstand
+
+- **M4a (Grundgerüst, umgesetzt):** Regionsauswahl im Spielfluss (Menü: Charakterauswahl → Regionsauswahl → Run), lineare Freischaltung (`select_region()` prüft `unlocked_regions`, Hauptboss-Sieg in Region n schaltet n+1 frei). Alle vier Regionen liegen als `RegionData`-Resources mit Multiplikatoren (Balancing §5), Spawn-Basis (§3.1) und Goldwerten (Wirtschaft §2.2, Vollsummen 250/595/860/1440) vor. Regionsnummer (`region_number`) und Greybox-Tönung (`ground_tint`) sind ergänzt.
+- **Platzhalter bis M4b/c/e (Region-Inhalte):** Die Spawn-Mixe der Regionen 2–4 bestehen vorerst aus Region-1-Gegnern (echter Mix jeweils mit der Region: M4b = Sumpfmoor, M4c = Dorf, M4e = Reich von Nav'). Der Hauptboss kämpft bis dahin als Leshy-Platzhalter (Auflösung über `main_boss_id` folgt mit den Boss-Szenen); die IDs der geplanten Bosse (`poludnitsa`, `baba_yaga`, `kaukas`, `aeltester_domovoi`, `marzanna`, `chernobog`) sind schon gesetzt. Karten-Differenzierung nur über die Bodentönung – echte Map-Szenen folgen mit der jeweiligen Region.

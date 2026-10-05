@@ -94,6 +94,8 @@ Hauptmenü
 
 **Navigationsprinzip:** Flache Hierarchie – von jedem Menüpunkt maximal 2 Taps zurück zum Hauptmenü. Bei einem Spiel mit kurzen 12-Minuten-Sessions darf das Meta-Menü selbst nicht viel Zeit kosten, sonst frisst es die knappe Spielzeit einer Pendel-Session auf.
 
+**Umsetzungsstand (M4a):** Der Spielfluss „Charakterauswahl → Regionsauswahl → Run startet" ist umgesetzt: Die Regionsauswahl listet alle vier Regionen mit Status („✓ gewählt" / „Bereit" / „Nach Sieg in „…“") und den Buttons „Wählen" bzw. „Gesperrt"; gesperrte Regionen sind nicht anwählbar. Die Meta-Übersicht „Regionen (Übersicht + Freischaltung)" im Hauptmenü steht noch aus.
+
 **Charakterauswahl-Screen:** Horizontal swipbare Karten (ähnlich Punkt 3, aber ohne Zeitdruck), gesperrte Charaktere sind sichtbar aber ausgegraut mit Freischalt-Bedingung als Text darauf – motiviert durch "Vorschau aufs Ziel" statt es komplett zu verstecken
 
 ---
