@@ -117,6 +117,7 @@ func _initialize() -> void:
 	_gen_vodyanoy()
 	_gen_rusalka()
 	_gen_poludnitsa()
+	_gen_baba_yaga()
 	_gen_leshy()
 	_gen_tree()
 	_gen_gem()
@@ -605,6 +606,57 @@ func _gen_poludnitsa() -> void:
 		"e": _flat(Color(0.10, 0.09, 0.07)),      # hohle Augen / Mund
 		"f": _mat(Color(0.80, 0.84, 0.87)),       # Sichelblatt
 		"h": _mat(Color(0.36, 0.27, 0.18)),       # Stiel
+	})
+
+
+## ---------- Baba Yaga: Hütte auf Hühnerbeinen (64x64, Hauptboss R2) ----------
+
+func _gen_baba_yaga() -> void:
+	var r := _blank(64, 64)
+	# Spitzdach: Spitze bei y6, läuft bis y21 auf die volle Hüttenbreite aus.
+	for y in range(6, 22):
+		var half := int(ceil(float(y - 6) * 1.75))
+		_stamp_rect(r, 31 - half, y, 32 + half, y, "s")
+	# Bohlenwände mit Querfugen.
+	_stamp_rect(r, 12, 22, 51, 45, "w")
+	for y in [25, 28, 31, 34, 37, 40, 43]:
+		_stamp_line(r, 12, y, 51, y, "x")
+	# Fenster als brennende Augen.
+	_stamp_rect(r, 18, 26, 26, 32, "d")
+	_stamp_rect(r, 37, 26, 45, 32, "d")
+	_stamp_rect(r, 19, 27, 25, 31, "E")
+	_stamp_rect(r, 38, 27, 44, 31, "E")
+	_stamp_rect(r, 20, 28, 24, 30, "F")
+	_stamp_rect(r, 39, 28, 43, 30, "F")
+	# Tür mit Rundbogen und gluterner Klinke.
+	_stamp_ellipse(r, 31, 33, 4, 3, "d")
+	_stamp_rect(r, 27, 33, 36, 45, "d")
+	_stamp_rect(r, 28, 34, 35, 45, "x")
+	_stamp_pixel(r, 33, 39, "F")
+	# Hühnerbeine mit Krallen.
+	_stamp_line(r, 22, 46, 20, 57, "g")
+	_stamp_line(r, 41, 46, 43, 57, "g")
+	_stamp_rect(r, 21, 46, 23, 48, "g")
+	_stamp_rect(r, 40, 46, 42, 48, "g")
+	for toe: Array in [[16, 61], [20, 61], [24, 61]]:
+		_stamp_line(r, 20, 57, toe[0], toe[1], "g")
+	for toe: Array in [[39, 61], [43, 61], [47, 61]]:
+		_stamp_line(r, 43, 57, toe[0], toe[1], "g")
+	# Dach-/Bohlen-Textur.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 406
+	_speckle(r, 8, 8, 55, 21, "s", "x", 0.22, rng)
+	_speckle(r, 8, 8, 55, 21, "s", "y", 0.12, rng)
+	_speckle(r, 12, 22, 51, 45, "w", "s", 0.14, rng)
+	_render("baba_yaga.png", r, {
+		"s": _mat(Color(0.49, 0.41, 0.25)),       # Strohdach
+		"y": _mat(Color(0.62, 0.53, 0.33)),       # Stroh hell
+		"x": _mat(Color(0.34, 0.26, 0.16)),       # Fugen / Schatten
+		"w": _mat(Color(0.57, 0.45, 0.28)),       # Bohlen
+		"d": _flat(Color(0.08, 0.06, 0.05)),      # Öffnungen
+		"E": _flat(Color(0.95, 0.66, 0.20)),      # Fensterleuchten
+		"F": _flat(Color(1.0, 0.86, 0.42)),       # Glut
+		"g": _mat(Color(0.56, 0.44, 0.22)),       # Hühnerbeine
 	})
 
 

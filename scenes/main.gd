@@ -59,8 +59,17 @@ const EVOLUTION_TARGETS: Array = [
 	URALTEICHEN_DATA, TODSCHNITT_DATA, PERUNS_ZORN_DATA,
 	LODERNDES_DATA, SEGENSCHUFEISEN_DATA,
 ]
-const BOSS_SCENE := preload("res://scenes/enemies/leshy_boss.tscn")
-const BOSS_DATA := preload("res://resources/enemies/leshy.tres")
+const BOSS_SCENES := {
+	&"leshy": preload("res://scenes/enemies/leshy_boss.tscn"),
+	&"baba_yaga": preload("res://scenes/bosses/baba_yaga_boss.tscn"),
+}
+const BOSS_DATA := {
+	&"leshy": preload("res://resources/enemies/leshy.tres"),
+	&"baba_yaga": preload("res://resources/enemies/baba_yaga.tres"),
+}
+## Fallback-Hauptboss (M4b-D): Regionen 3/4 haben noch keine eigenen
+## Bosse und laufen bis M4c/M4e gegen Leshy.
+const BOSS_FALLBACK_ID := &"leshy"
 ## Schlamm-Zone (M4b, Regions-Hazard): Klasse statt Szene – Form und
 ## Kollision werden pro Instanz im _ready() aufgebaut.
 const MUD_ZONE_SCRIPT := preload("res://scenes/regions/mud_zone.gd")
@@ -465,15 +474,19 @@ func _fire_enemy_projectile(pos: Vector2, dir: Vector2, speed: float, damage: fl
 ## Spawnt den Hauptboss (M2c-3): Minute 10, nach dem Spawn-Stopp (Boss-Slot).
 ## Boss-HP ist fix (Balancing §6): KEIN Zeit-Multiplikator, Region-Multiplikator
 ## ist in den Basiswerten bereits eingerechnet -> Multiplikatoren 1.0.
-## Platzhalter (M4a): bis die Regionsbosse existieren (M4b/c/g), kämpft jede
-## Region gegen Leshy – die Auflösung über region.main_boss_id (Baba Yaga,
-## Ältester Domovoi, Chernobog) folgt mit den Boss-Szenen der Regionen.
+## Auflösung über region.main_boss_id (M4b-D): Leshy (R1), Baba Yaga (R2);
+## die Regionen 3/4 (M4c/M4e) hängen noch am Leshy-Fallback.
 func _spawn_boss() -> void:
 	_boss_spawned = true
 	_boss_spawn_time = run_time
-	var boss: BossBase = BOSS_SCENE.instantiate()
+	# Hauptboss über region.main_boss_id (M4b-D: Leshy R1, Baba Yaga R2);
+	# unbekannte IDs der noch offenen Regionen fallen auf Leshy zurück.
+	var boss_id := region.main_boss_id
+	if not BOSS_SCENES.has(boss_id):
+		boss_id = BOSS_FALLBACK_ID
+	var boss: BossBase = (BOSS_SCENES[boss_id] as PackedScene).instantiate()
 	enemy_container.add_child(boss)
-	boss.setup_from_data(BOSS_DATA, 1.0, 1.0, false)
+	boss.setup_boss(BOSS_DATA[boss_id])
 	boss.global_position = _random_offscreen_position()
 	boss.target = player
 	boss.on_died = _on_boss_died
