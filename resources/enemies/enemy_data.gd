@@ -26,6 +26,10 @@ enum Role { SWARM, RANGED, FLYER, ELITE, MINIBOSS, BOSS }
 @export var lifesteal: float = 0.0
 @export var attack_range: float = 0.0      # > 0 = Fernkämpfer
 @export var attack_cooldown: float = 0.0
+## Eigenes Sprite (M4b): Die Pool-Szenen haben feste Texturen – über dieses
+## Feld bekommt ein Gegner seine eigene Platzhalter-Grafik, ohne dass er
+## eine eigene Szene/Pool braucht. Leer = die Standardtextur der Pool-Szene.
+@export var sprite: Texture2D
 ## Gegner-Tags für Waffen-Boni (Waffen-Dok §2.2 Hausgeist-Typ =
 ## Domovoi/Aitvaras/Kaukas, §2.3 Wasser-/Geist-Gegner) – M4d.
 @export var tags: PackedStringArray

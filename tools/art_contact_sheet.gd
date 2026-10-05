@@ -7,6 +7,7 @@ extends SceneTree
 
 const FILES := [
 	"player", "kikimora", "domovoi", "aitvaras",
+	"upyr", "vodyanoy", "rusalka",
 	"leshy", "tree", "xp_gem", "enemy_projectile", "ground",
 ]
 const SCALE := 6

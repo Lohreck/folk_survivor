@@ -1,35 +1,51 @@
-[gd_resource type="Resource" script_class="RegionData" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="RegionData" load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://resources/regions/region_data.gd" id="1"]
 [ext_resource type="Script" path="res://resources/regions/enemy_spawn_entry.gd" id="2"]
-[ext_resource type="Resource" path="res://resources/enemies/kikimora.tres" id="3"]
+[ext_resource type="Resource" path="res://resources/enemies/upyr.tres" id="3"]
 [ext_resource type="Resource" path="res://resources/enemies/domovoi.tres" id="4"]
 [ext_resource type="Resource" path="res://resources/enemies/aitvaras.tres" id="5"]
+[ext_resource type="Resource" path="res://resources/enemies/vodyanoy.tres" id="6"]
+[ext_resource type="Resource" path="res://resources/enemies/rusalka.tres" id="7"]
 
-[sub_resource type="Resource" id="Resource_kiki"]
+[sub_resource type="Resource" id="Resource_upyr"]
 script = ExtResource("2")
 enemy = ExtResource("3")
-weight = 60.0
+weight = 35.0
+from_minute = 0.0
+is_elite = false
+
+[sub_resource type="Resource" id="Resource_vody"]
+script = ExtResource("2")
+enemy = ExtResource("6")
+weight = 20.0
 from_minute = 0.0
 is_elite = false
 
 [sub_resource type="Resource" id="Resource_domo"]
 script = ExtResource("2")
 enemy = ExtResource("4")
-weight = 25.0
+weight = 20.0
 from_minute = 2.0
 is_elite = false
 
 [sub_resource type="Resource" id="Resource_ait"]
 script = ExtResource("2")
 enemy = ExtResource("5")
-weight = 15.0
+weight = 25.0
 from_minute = 3.0
 is_elite = false
 
-[sub_resource type="Resource" id="Resource_ait_elite"]
+[sub_resource type="Resource" id="Resource_vody_boost"]
 script = ExtResource("2")
-enemy = ExtResource("5")
+enemy = ExtResource("6")
+weight = 15.0
+from_minute = 5.0
+is_elite = false
+
+[sub_resource type="Resource" id="Resource_rusalka_elite"]
+script = ExtResource("2")
+enemy = ExtResource("7")
 weight = 0.0
 from_minute = 5.0
 is_elite = true
@@ -42,7 +58,7 @@ region_number = 2
 hp_multiplier = 1.5
 damage_multiplier = 1.25
 spawn_basis = 2.0
-enemy_spawn_table = [SubResource("Resource_kiki"), SubResource("Resource_domo"), SubResource("Resource_ait"), SubResource("Resource_ait_elite")]
+enemy_spawn_table = [SubResource("Resource_upyr"), SubResource("Resource_vody"), SubResource("Resource_domo"), SubResource("Resource_ait"), SubResource("Resource_vody_boost"), SubResource("Resource_rusalka_elite")]
 mini_boss_id = &"poludnitsa"
 main_boss_id = &"baba_yaga"
 boss_gold_bonus = 130

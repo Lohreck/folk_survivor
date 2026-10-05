@@ -37,6 +37,13 @@ const _RADIAL_GAIN := 8.0
 ## Gewichtung der Separation in px/s (wird auf diese Länge gedeckelt).
 const _SEPARATION_WEIGHT := 140.0
 
+## Sog/Pull (M4b, Tag „pull“): alle 6 s den Spieler heranziehen, wenn er
+## innerhalb der Reichweite ist (Rusalka „zieht Spieler an“ – Setting §3).
+## Die Kraft wirkt als Impuls mit Decay auf der Spieler-Seite.
+const PULL_INTERVAL := 6.0
+const PULL_RANGE := 420.0
+const PULL_FORCE := 400.0
+
 ## Stun-Tönung (Peruns Zorn, Waffen-Dok §2.5): lesbares Status-Feedback.
 const _STUN_COLOR := Color(0.7, 0.85, 1.6)
 
@@ -73,8 +80,17 @@ var _bleed_list: Array = []
 ## Stun (Peruns Zorn, Waffen-Dok §2.5): solange > 0 steht der Gegner still
 ## und schießt nicht.
 var _stun_time := 0.0
+## Lifesteal-Anteil (M4b, Upyr „saugt bei Treffer HP ab“): Anteil des vom
+## Spieler zugefügten Schadens, der als HP zurückkommt – wird vom Spieler
+## in _apply_contact_damage() an den Angreifer zurückgezahlt.
+var lifesteal_pct := 0.0
+## Pull-Timer (M4b, Tag „pull“) – wird beim Spawn zurückgesetzt.
+var _pull_timer := PULL_INTERVAL
 
 @onready var _visual: Sprite2D = $Body
+## Standardtextur der Pool-Szene (M4b): gilt/kehrt zurück, wenn die
+## EnemyData kein eigenes sprite hat (Pool-Wiederverwendung!).
+var _default_texture: Texture2D
 
 
 func _ready() -> void:
@@ -83,6 +99,7 @@ func _ready() -> void:
 	collision_mask = 0
 	monitoring = false
 	monitorable = true
+	_default_texture = _visual.texture
 
 
 func _physics_process(delta: float) -> void:
@@ -200,6 +217,17 @@ func _physics_process(delta: float) -> void:
 	# Hook für Unterklassen (Fernkampf-Schusslogik etc.).
 	_think_extra(delta, target_dist, dir)
 
+	# Sog-Pull (M4b, Tag „pull“): Rusalka zieht den Spieler periodisch zu
+	# sich heran (Setting §3 „zieht Spieler an“). Kraft = Impuls beim
+	# Spieler mit Decay; der Timer tickt weiter, damit der Rhythmus
+	# vorhersehbar bleibt (Auslösung erst bei Reichweite).
+	if has_tag(&"pull"):
+		_pull_timer -= delta
+		if _pull_timer <= 0.0:
+			_pull_timer = PULL_INTERVAL
+			if target_dist <= PULL_RANGE and target.has_method("apply_pull"):
+				target.apply_pull(global_position, PULL_FORCE)
+
 
 ## Hook: Unterklassen (z. B. RangedEnemy) implementieren hier Zusatzlogik,
 ## die den Basis-Tick nicht ersetzt, sondern ergänzt (Schießen, Aufladen etc.).
@@ -243,6 +271,14 @@ func apply_stun(duration: float) -> void:
 ## wasser/geist beim Lodernden Weihwasser – Waffen-Dok §2.2/§2.3).
 func has_tag(tag: StringName) -> bool:
 	return tag in enemy_tags
+
+
+## Lifesteal (M4b, Upyr): um `amount` heilen, gedeckelt auf die Maximal-HP.
+## Aufrufseite: Spieler in _apply_contact_damage().
+func heal(amount: float) -> void:
+	if not visible:
+		return
+	_hp = minf(_hp + amount, max_hp)
 
 
 ## Aura-Verlangsamung (Domovoi-Glöckchen): Prozent, die IN DIESEM Frame
@@ -309,12 +345,16 @@ func setup_from_data(data: EnemyData, hp_mult: float, dmg_mult: float, elite: bo
 	is_elite = elite
 	source_id = data.id
 	enemy_tags = data.tags
+	lifesteal_pct = data.lifesteal
 	max_hp = data.base_hp * hp_mult * (10.0 if elite else 1.0)
 	contact_damage = data.base_damage * dmg_mult
 	enemy_role = data.role
 	xp_value = float(data.xp_value)
 	gold_value = data.gold_value
 	move_speed = data.effective_move_speed()
+	# Eigenes Sprite (M4b): ohne data.sprite kehrt die Standardtextur der
+	# Pool-Szene zurück – sonst sieht der nächste Nutzer der Instanz alt aus.
+	_visual.texture = data.sprite if data.sprite != null else _default_texture
 	# _hp wird in activate() auf max_hp gesetzt – dort auch die Daten berücksichtigen.
 	_hp = max_hp
 
@@ -329,6 +369,8 @@ func activate() -> void:
 	_root_time = 0.0
 	_aura_slow_pct = 0.0
 	_knockback = Vector2.ZERO
+	lifesteal_pct = 0.0
+	_pull_timer = PULL_INTERVAL
 	visual_flash_reset()
 	visible = true
 	set_physics_process(true)

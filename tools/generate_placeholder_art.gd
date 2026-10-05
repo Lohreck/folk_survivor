@@ -113,6 +113,9 @@ func _initialize() -> void:
 	_gen_kikimora()
 	_gen_domovoi()
 	_gen_aitvaras()
+	_gen_upyr()
+	_gen_vodyanoy()
+	_gen_rusalka()
 	_gen_leshy()
 	_gen_tree()
 	_gen_gem()
@@ -417,6 +420,134 @@ func _gen_aitvaras() -> void:
 		"n": _mat(Color(0.44, 0.31, 0.21)),       # Knochen
 		"E": _flat(Color(1.0, 0.84, 0.40)),
 		"F": _flat(Color(1.0, 0.60, 0.18)),
+	})
+
+
+## ---------- Upyr: bleicher Vampir-Verfolger (24x24) ----------
+
+func _gen_upyr() -> void:
+	var r := _blank(24, 24)
+	# Umhang (dunkelrot) von den Schultern bis zum zerfetzten Saum.
+	_stamp_rect(r, 7, 9, 16, 21, "c")
+	_stamp_rect(r, 6, 12, 6, 20, "c")
+	_stamp_rect(r, 17, 12, 17, 20, "c")
+	# hochgeschlagener Kragen.
+	_stamp_rect(r, 8, 8, 15, 9, "d")
+	_stamp_pixel(r, 7, 8, "d")
+	_stamp_pixel(r, 16, 8, "d")
+	# Kopf (bleicher Teint), Haarschatten Stirn.
+	_stamp_ellipse(r, 11, 5, 4, 3, "p")
+	_stamp_rect(r, 8, 2, 14, 3, "d")
+	_stamp_pixel(r, 7, 3, "d")
+	_stamp_pixel(r, 15, 3, "d")
+	# Glut-Augen und Reißzähne.
+	_stamp_pixel(r, 9, 5, "e")
+	_stamp_pixel(r, 13, 5, "e")
+	_stamp_pixel(r, 10, 7, "f")
+	_stamp_pixel(r, 12, 7, "f")
+	# ausgestreckte Arme mit Krallen.
+	_stamp_line(r, 6, 13, 4, 17, "p")
+	_stamp_line(r, 17, 13, 19, 17, "p")
+	_stamp_pixel(r, 3, 18, "p")
+	_stamp_pixel(r, 20, 18, "p")
+	_stamp_pixel(r, 3, 19, "f")
+	_stamp_pixel(r, 20, 19, "f")
+	# Umhang-Textur + zerfetzter Saum.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 401
+	_speckle(r, 7, 10, 16, 21, "c", "d", 0.20, rng)
+	_speckle(r, 7, 10, 16, 21, "c", "e", 0.04, rng)
+	_hem(r, 21, 7, 16, 0.45, rng)
+	_render("upyr.png", r, {
+		"c": _mat(Color(0.36, 0.15, 0.15)),       # Umhang (gedämpftes Blutrot)
+		"d": _mat(Color(0.21, 0.10, 0.11)),       # Umhang dunkel / Kragen
+		"p": _mat(Color(0.75, 0.71, 0.66)),       # bleicher Teint
+		"e": _flat(Color(0.88, 0.24, 0.13)),      # Glut-Augen
+		"f": _flat(Color(0.93, 0.91, 0.83)),      # Reißzähne / Krallen
+	})
+
+
+## ---------- Vodyanoy: mooriger Wassergeist (24x24) ----------
+
+func _gen_vodyanoy() -> void:
+	var r := _blank(24, 24)
+	# Plumper, breitgequetschter Körper.
+	_stamp_ellipse(r, 11, 15, 8, 6, "b")
+	# heller Bauch.
+	_stamp_ellipse(r, 11, 17, 5, 3, "v")
+	# breiter Kopf mit Glotzaugen auf der Schädelkrone.
+	_stamp_ellipse(r, 11, 8, 6, 4, "b")
+	_stamp_ellipse(r, 7, 4, 2, 2, "b")
+	_stamp_ellipse(r, 15, 4, 2, 2, "b")
+	_stamp_pixel(r, 7, 4, "e")
+	_stamp_pixel(r, 15, 4, "e")
+	# weites, heruntergezogenes Maul + Nasenlöcher.
+	_stamp_line(r, 8, 10, 14, 10, "d")
+	_stamp_pixel(r, 7, 9, "d")
+	_stamp_pixel(r, 15, 9, "d")
+	_stamp_pixel(r, 10, 8, "d")
+	_stamp_pixel(r, 12, 8, "d")
+	# schläfrige Vorderfüße mit Schwimmhäuten.
+	_stamp_line(r, 4, 16, 2, 19, "b")
+	_stamp_line(r, 18, 16, 20, 19, "b")
+	_stamp_rect(r, 1, 20, 4, 21, "b")
+	_stamp_rect(r, 18, 20, 21, 21, "b")
+	for p: Array in [[1, 22], [3, 22], [19, 22], [21, 22]]:
+		_stamp_pixel(r, p[0], p[1], "b")
+	# Schleim-/Schlammflecken.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 402
+	_speckle(r, 4, 8, 18, 21, "b", "g", 0.24, rng)
+	_speckle(r, 5, 16, 17, 20, "v", "g", 0.18, rng)
+	_render("vodyanoy.png", r, {
+		"b": _mat(Color(0.35, 0.45, 0.38)),       # mooriges Grün
+		"v": _mat(Color(0.52, 0.58, 0.45)),       # Bauch
+		"g": _mat(Color(0.23, 0.31, 0.30)),       # Schleim-Schatten
+		"e": _flat(Color(0.89, 0.86, 0.61)),      # Glotz-Augen
+		"d": _flat(Color(0.09, 0.13, 0.12)),      # Maul
+	})
+
+
+## ---------- Rusalka: ertrunkene Wassernymphe, Elite (32x32) ----------
+
+func _gen_rusalka() -> void:
+	var r := _blank(32, 32)
+	# zerrissenes Gewand: Schultern → schmaler werdender, aufgelöster Saum.
+	_stamp_rect(r, 13, 13, 18, 28, "d")
+	_stamp_rect(r, 12, 16, 12, 27, "d")
+	_stamp_rect(r, 19, 16, 19, 27, "d")
+	_stamp_rect(r, 11, 22, 11, 26, "d")
+	_stamp_rect(r, 20, 22, 20, 26, "d")
+	# Kopf.
+	_stamp_ellipse(r, 16, 8, 4, 4, "p")
+	# langer nasser Haarwall: Oberkopf, seitlich bis tief, Enden schwimmend.
+	_stamp_rect(r, 12, 3, 20, 5, "w")
+	_stamp_rect(r, 10, 6, 11, 20, "w")
+	_stamp_rect(r, 21, 6, 22, 20, "w")
+	_stamp_pixel(r, 9, 9, "w")
+	_stamp_pixel(r, 23, 9, "w")
+	_stamp_line(r, 10, 21, 13, 27, "w")
+	_stamp_line(r, 22, 21, 19, 27, "w")
+	# leere Augenhöhlen + aufgerissener Mund (Gesang).
+	_stamp_pixel(r, 14, 8, "e")
+	_stamp_pixel(r, 18, 8, "e")
+	_stamp_rect(r, 15, 11, 16, 11, "e")
+	# ausgebreitete Arme, hände tasten nach vorn.
+	_stamp_line(r, 12, 15, 8, 19, "p")
+	_stamp_line(r, 20, 15, 24, 19, "p")
+	_stamp_pixel(r, 7, 20, "p")
+	_stamp_pixel(r, 25, 20, "p")
+	# nasser Schatten im Gewand + aufgelöster Saum.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 403
+	_speckle(r, 11, 14, 20, 28, "d", "g", 0.22, rng)
+	_hem(r, 28, 11, 20, 0.55, rng)
+	_render("rusalka.png", r, {
+		"d": _mat(Color(0.63, 0.69, 0.64)),       # bleich-grünes Gewand
+		"g": _mat(Color(0.45, 0.53, 0.51)),       # nasser Schatten
+		"w": _mat(Color(0.21, 0.29, 0.23)),       # nasser Haarwall
+		"p": _mat(Color(0.77, 0.77, 0.71)),       # bleicher Körper
+		"e": _flat(Color(0.08, 0.10, 0.09)),      # Augenhöhlen
 	})
 
 

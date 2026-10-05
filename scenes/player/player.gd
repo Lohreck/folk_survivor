@@ -52,6 +52,25 @@ var xp_to_next := 6.0
 
 var _contact_timer := 0.0
 
+## Verlangsamungs-System (M4b, Sumpfmoor): Bereichs-Quellen (Schlamm-Flächen,
+## Poludnitsa-Aura) werden pro Frame neu gesetzt und verfallen danach sofort
+## (Frame-Verfall wie TestEnemy._aura_slow_pct); zeitliche Quellen (Sog-
+## Kontakt) laufen über einen eigenen Timer. Beides wird addiert und auf
+## SLOW_CAP gedeckelt.
+const SLOW_CAP := 0.6
+## Sog-Kontakt (M4b, Vodyanoy „zieht Spieler mit Sog-Angriff heran“): der
+## Treffer zieht das Tempo für 1.2 s herunter.
+const SOG_SLOW_PCT := 30.0
+const SOG_SLOW_TIME := 1.2
+## Pull-Impuls (M4b, Rusalka): Decay in px/s – bei Kraft 400 ≈ 0.6 s Zug.
+const _PULL_DECAY := 700.0
+
+var _area_slows: Dictionary = {}    # Quelle(StringName) -> Prozent
+var _timed_slows: Dictionary = {}   # Quelle(StringName) -> {"pct", "time"}
+## Sog-Impuls (px/s), der die normale Bewegung überlagert (wie der
+## Gegner-Knockback, nur auf der Spieler-Seite).
+var _pull := Vector2.ZERO
+
 ## Letzte Schadensquelle und deren Trefferstärke (Telemetrie §4 death_cause:
 ## „Gegnertyp/Schaden“ für die One-Shot-Erkennung). Wird von take_damage()
 ## gefüllt, wenn die Aufrufseite eine Quelle übergibt – Kontakttreffer,
@@ -115,6 +134,10 @@ func _physics_process(delta: float) -> void:
 	if dir == Vector2.ZERO:
 		dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 
+	# Verlangsamungen konsumieren (M4b): Bereichs-Quellen verfallen nach
+	# einem Frame, zeitliche ticken mit delta runter.
+	var slow_pct := _consume_slow(delta)
+
 	# Zielrichtung (Twin-Stick): Aim-Touch (rechte Bildschirmhälfte) hat
 	# Vorrang vor dem rechten Gamepad-Stick. Ohne Eingabe ZERO = Auto-Modus.
 	var aim := VirtualJoystickInput.get_aim()
@@ -122,7 +145,11 @@ func _physics_process(delta: float) -> void:
 		aim = Input.get_vector("aim_left", "aim_right", "aim_up", "aim_down")
 	_aim_vector = aim
 
-	global_position += dir * speed * delta
+	# Sog-Impuls überlagert die Eingabe als eigenen Bewegungsanteil und
+	# zerfällt wie der Gegner-Knockback (M4b, Rusalka-Pull).
+	global_position += (dir * speed * (1.0 - slow_pct) + _pull) * delta
+	if _pull != Vector2.ZERO:
+		_pull = _pull.move_toward(Vector2.ZERO, _PULL_DECAY * delta)
 	if has_meta("arena_size"):
 		var arena: Vector2 = get_meta("arena_size")
 		global_position = global_position.clamp(Vector2.ZERO, arena)
@@ -151,7 +178,16 @@ func _apply_contact_damage() -> void:
 			# den aktiven Passiv, damit andere Charaktere unberührt bleiben.
 			if passive_id == &"zaehe_haut" and area.enemy_role == EnemyData.Role.SWARM:
 				dmg *= 0.9
+			# Upyr-Lifesteal (M4b): der Angreifer heilt um einen Anteil des
+			# tatsächlich zugefügten Schadens (Setting §3 „saugt bei Treffer
+			# HP vom Spieler ab“).
+			if area.lifesteal_pct > 0.0:
+				area.heal(dmg * area.lifesteal_pct)
 			take_damage(dmg, area.source_id)
+			# Sog-Kontakt (M4b, Tag „sog“): der Treffer zieht das Tempo für
+			# 1.2 s herunter (Vodyanoy-Sog-Angriff).
+			if area.has_tag(&"sog"):
+				apply_slow(&"sog", SOG_SLOW_PCT, SOG_SLOW_TIME)
 			return
 
 
@@ -233,6 +269,56 @@ func heal(amount: float) -> void:
 ## Holzfäller 0.8× / Soldat 1.0×).
 func set_speed_multiplier(mult: float) -> void:
 	speed = BASE_SPEED * base_speed_mult * mult
+
+
+# ---------------------------------------------------------------------------
+# Verlangsamung & Pull (M4b, Sumpfmoor)
+# ---------------------------------------------------------------------------
+
+## Bereichs-Verlangsamung (Schlamm-Zone, Poludnitsa-Aura): Quelle meldet
+## pro Frame ihren Wert neu; entfällt der Aufruf, verfällt die Quelle nach
+## einem Frame automatisch (Muster wie TestEnemy._aura_slow_pct).
+func set_area_slow(source: StringName, pct: float) -> void:
+	_area_slows[source] = maxf(_area_slows.get(source, 0.0), pct)
+
+
+## Bereichs-Verlangsamung sofort beenden (z. B. Quelle stirbt/verschwindet).
+func clear_area_slow(source: StringName) -> void:
+	_area_slows.erase(source)
+
+
+## Zeitliche Verlangsamung (Sog-Kontakt): gilt bis Ablauf der Dauer.
+func apply_slow(source: StringName, pct: float, duration: float) -> void:
+	_timed_slows[source] = {"pct": pct, "time": duration}
+
+
+## Sog-Pull (M4b, Rusalka): Impuls ZU `source_position` hin, der wie der
+## Gegner-Knockback mit _PULL_DECAY zerfällt.
+func apply_pull(source_position: Vector2, force: float) -> void:
+	if not alive:
+		return
+	var dir := source_position - global_position
+	if dir.length() < 0.001:
+		dir = Vector2.RIGHT
+	_pull += dir.normalized() * force
+
+
+## Aktive Verlangsamung in Prozent konsumieren: Bereichs-Quellen werden
+## gelesen und sofort geleert (Frame-Verfall), zeitliche Quellen ticken ab.
+## Rückgabe: Gesamt-Slow als Faktor (0.0 … SLOW_CAP).
+func _consume_slow(delta: float) -> float:
+	var total := 0.0
+	for pct in _area_slows.values():
+		total += float(pct)
+	_area_slows.clear()
+	for key in _timed_slows.keys():
+		var entry: Dictionary = _timed_slows[key]
+		entry["time"] = float(entry["time"]) - delta
+		if float(entry["time"]) <= 0.0:
+			_timed_slows.erase(key)
+		else:
+			total += float(entry["pct"])
+	return clampf(total / 100.0, 0.0, SLOW_CAP)
 
 
 ## Zielrichtung für die Waffen (Twin-Stick): != ZERO, solange manuell gezielt

@@ -574,6 +574,10 @@ func _on_enemy_died(enemy: TestEnemy) -> void:
 		"amount": enemy.gold_value,
 		"enemy": enemy.source_id,
 	})
+	# Rusalka-Sieg (M4b): erste Niederlage zählt als Boss-Sieg für die
+	# Freischaltung der Kräuterfrau (Charaktere-Dok §1, „1× Rusalka besiegt“).
+	if enemy.source_id == &"rusalka":
+		MetaProgress.mark_boss_defeated(&"rusalka")
 	var gem := EnemyPoolManager.get_instance(POOL_GEMS)
 	if gem != null:
 		gem.global_position = enemy.global_position
