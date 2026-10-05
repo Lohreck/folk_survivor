@@ -460,7 +460,7 @@ func _refresh_regions() -> void:
 			# Lineare Freischaltung (Regionen-Dok §1): die Vorgängerregion
 			# muss zuerst gewonnen werden – Bedingung sichtbar als Text.
 			var previous := REGION_LIST[region_number - 2] as RegionData
-			status.text = "Nach Sieg in „%s"" % previous.display_name
+			status.text = "Nach Sieg in %s" % previous.display_name
 			status.add_theme_color_override("font_color", Color(0.78, 0.6, 0.55))
 			button.text = "Gesperrt"
 			button.disabled = true
